@@ -1,16 +1,24 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using System;
+Console.Write("input integer n: ");
+int n = int.Parse(Console.ReadLine());
 
-class LogicExercise
+for (int i = 1; i <= n; i++)
 {
-    static void Main()
+    if (i % 3 == 0 && i % 5 == 0)
     {
-        Console.Write("Masukkan nilai n: ");
-        int n = int.Parse(Console.ReadLine());
-
-        for (int i = 1; i <= n; i++)
-        {
-            Console.WriteLine(i);
-        }
+        Console.Write("foobar,");
+    }
+    else if (i % 3 == 0)
+    {
+        Console.Write("foo,");
+    }
+    else if (i % 5 == 0)
+    {
+        Console.Write("bar,");
+    }
+        else
+    {
+        Console.Write(i + ",");
     }
 }
+
