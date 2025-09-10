@@ -6,57 +6,34 @@ class ConsoleApp1
 {
     static void Main()
     {
-        //iteration statement
-        Console.Write("Masukkan nilai n: ");
-        int n = int.Parse(Console.ReadLine());
+        //break statement
+        int n = 10;
         for (int i = 1; i <= n; i++)
         {
-            Console.Write(i); // Tambahkan titik koma di akhir baris ini
-            if (i < n)
+            if (i == 5)
             {
-                Console.Write(", ");
+                break; // Keluar dari loop ketika i sama dengan 5
             }
+            Console.Write(i + " ");
         }
-        //while-do statement
-        Console.WriteLine("\n\nMasukkan nilai m: ");
-        int m = int.Parse(Console.ReadLine());
-        int j = 1;
-        while (j <= m)
+        //continue statement
+        Console.WriteLine();
+        for (int i = 1; i <= n; i++)
         {
-            Console.Write(j);
-            if (j < m)
+            if (i == 5)
             {
-                Console.Write(", ");
+                continue; // Lewati iterasi ketika i sama dengan 5
             }
-            j++;
+            Console.Write(i + " ");
         }
-        //do-while statement
-        Console.WriteLine("\n\nMasukkan nilai p: ");
-        //int p = int.Parse(Console.ReadLine());
-        int k = 1;
-        do
+        //goto statement
+        int i = 1;
+        startLoop: // This is a label
+        if (i <= 5)
         {
-            Console.Write(k);
-            if (k < p)
-            {
-                Console.Write(", ");
-            }
-            k++;
-        } 
-        while (k <= p);
-        //loops
-        //memberikan baris baru
-        Console.WriteLine("\n\n Loop dari 0 sampai 10:");
-        for (int i = 0; i < 10; i++)
-        {
-            Console.WriteLine(i);
+            Console.Write(i + " ");
+            i++;
+            goto startLoop; // Jumps back to the 'startLoop' label
         }
-        //foreach loops
-        string[] nama = { "Alfi", "Karom", "Syah" };
-        Console.WriteLine("\nMenampilkan elemen array nama:");
-        foreach (string n in nama)
-        {
-            Console.WriteLine(n);
-        } 
     }
 }
