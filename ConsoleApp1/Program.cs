@@ -5,25 +5,17 @@ class ConsoleApp1
 {
     static void Main()
     {
-        // Oprational boolean &&, ||, !
-        bool a = false;
-        bool b = false;
-        bool c = true;
-        bool d = true;
-        Console.WriteLine(a && b); 
-        Console.WriteLine(a && c); 
-        Console.WriteLine(c && d); 
-        Console.WriteLine(a || c); 
-        Console.WriteLine(a || b);
-        Console.WriteLine(c || d); 
-        Console.WriteLine(!a); 
-        Console.WriteLine(!c); 
-        Console.WriteLine(!a && c || d);
-        Console.WriteLine(!(a && c) || d); 
-        Console.WriteLine(!(a && c || d)); 
-        Console.WriteLine(!a && (c || d));
-        Console.WriteLine(!a && c || !d); 
-        Console.WriteLine(!a && (c || !d));
+        // Boolean Equality
+        Console.WriteLine("Input nilai x dalam integer:");
+        int x = Convert.ToInt32(Console.ReadLine(), CultureInfo.InvariantCulture);
+        Console.WriteLine("Input nilai y dalam integer:");
+        int y = Convert.ToInt32(Console.ReadLine(), CultureInfo.InvariantCulture);
+        Console.WriteLine("Input nilai z dalam integer:");
+        int z = Convert.ToInt32(Console.ReadLine(), CultureInfo.InvariantCulture);
+        Console.WriteLine($"{x} == {y} : {x == y}");
+        Console.WriteLine($"{x} == {z} : {x == z}");
+        Console.WriteLine($"{x} != {y} : {x != y}");
+        Console.WriteLine($"{x} != {z} : {x != z}");
     }
 }
 
