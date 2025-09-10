@@ -6,27 +6,57 @@ class ConsoleApp1
 {
     static void Main()
     {
-        //null operators
-        string? nama = null;
-        Console.WriteLine(nama ?? "nama tidak diisi");
-        nama = "Hikaromi";
-        Console.WriteLine(nama ?? "nama tidak diisi");
-
-        string s1 = null;
-        string s2 = s1 ?? "s1 is null";
-        Console.WriteLine(s2);
-
-        //null-coalescing assignment operator
-        string? s3 = null;
-        s3 ??= "s3 is null";
-        Console.WriteLine(s3);
-
-        //null-conditional operator
-        string? s4 = null;
-        int? length = s4?.Length;
-        Console.WriteLine(length ?? 0);
-        s4 = "Hikaromi";
-        length = s4?.Length;
-        Console.WriteLine(length ?? 0);
+        //iteration statement
+        Console.Write("Masukkan nilai n: ");
+        int n = int.Parse(Console.ReadLine());
+        for (int i = 1; i <= n; i++)
+        {
+            Console.Write(i); // Tambahkan titik koma di akhir baris ini
+            if (i < n)
+            {
+                Console.Write(", ");
+            }
+        }
+        //while-do statement
+        Console.WriteLine("\n\nMasukkan nilai m: ");
+        int m = int.Parse(Console.ReadLine());
+        int j = 1;
+        while (j <= m)
+        {
+            Console.Write(j);
+            if (j < m)
+            {
+                Console.Write(", ");
+            }
+            j++;
+        }
+        //do-while statement
+        Console.WriteLine("\n\nMasukkan nilai p: ");
+        //int p = int.Parse(Console.ReadLine());
+        int k = 1;
+        do
+        {
+            Console.Write(k);
+            if (k < p)
+            {
+                Console.Write(", ");
+            }
+            k++;
+        } 
+        while (k <= p);
+        //loops
+        //memberikan baris baru
+        Console.WriteLine("\n\n Loop dari 0 sampai 10:");
+        for (int i = 0; i < 10; i++)
+        {
+            Console.WriteLine(i);
+        }
+        //foreach loops
+        string[] nama = { "Alfi", "Karom", "Syah" };
+        Console.WriteLine("\nMenampilkan elemen array nama:");
+        foreach (string n in nama)
+        {
+            Console.WriteLine(n);
+        } 
     }
 }
