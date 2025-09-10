@@ -7,18 +7,48 @@ class ConsoleApp1
 {
     static void Main()
     {
-        //string kalimat menghilangkan kondisi tidak perlukan
-        Console.Write("input kalimat: ");
-        string kalimat = Console.ReadLine();
+        //Increment by 1
+        Console.Write("input nilai n: ");
+        int n = int.Parse(Console.ReadLine());
 
-        string HasilAwal = kalimat.ToLower();
-        //HasilAwal = Regex.Replace(HasilAwal, @"[^\w\s]", ""); // menghilangkan tanda baca
-        //HasilAwal = Regex.Replace(HasilAwal, @"\s+", ""); // menghilangkan spasi
-        //HasilAwal = Regex.Replace(HasilAwal, @"\d", ""); // menghilangkan angka
-        //HasilAwal = Regex.Replace(HasilAwal, @"[a-zA-Z]", ""); // menghilangkan huruf
-        //HasilAwal = Regex.Replace(HasilAwal, @"[aAiIuUeEoO]", ""); // menghilangkan huruf vokal
-        HasilAwal = Regex.Replace(HasilAwal, @"[BbRrIi]", ""); // menghilangkan huruf tertentu dalam konteks b, r, dan i
-        Console.WriteLine("Kalimat akhir: " + HasilAwal);
+        for (int i = 1; i <= n; i++)
+        {
+            Console.Write(i);
+            if (i < n)
+            {
+                Console.Write(", ");
+            }
+        }
+        Console.WriteLine();
+
+        //increment pada string
+        Console.Write("input huruf (a-z): ");
+        string? inputHuruf = Console.ReadLine();
+        char HurufAkhir = 'a';
+        if (!string.IsNullOrEmpty(inputHuruf))
+        {
+            HurufAkhir = inputHuruf[0];
+        }
+        else
+        {
+            Console.WriteLine("Input huruf tidak valid, menggunakan 'a'.");
+        }
+        for (char c = 'a'; c <= HurufAkhir; c++)
+        {
+            Console.Write(c + " ");
+        }
+        //Decrement by 2
+        Console.WriteLine();
+        Console.Write("input nilai m: ");
+        int m = int.Parse(Console.ReadLine());
+        for (int i = m; i >= 1; i -= 3)
+        {
+            Console.Write(i);
+            if (i - 2 >= 1)
+            {
+                Console.Write(", ");
+            }
+        }
     }
 }
 
