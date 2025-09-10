@@ -5,51 +5,55 @@ class ConsoleApp1
 {
     static void Main()
     {
-        Console.WriteLine("Masukkan sebuah kata atau kalimat:");
-        string input = Console.ReadLine();
+        //Perhitungan dua bilangan integer
+        Console.Write("Masukan Nilai integer: ");
+        int x = int.Parse(Console.ReadLine());
 
-        // Uppercase
-        string upper = input.ToUpper();
-        Console.WriteLine($"Uppercase: {upper}");
+        Console.Write("Masukan Nilai Integer: ");
+        int y = int.Parse(Console.ReadLine());
 
-        // Lowercase
-        string lower = input.ToLower();
-        Console.WriteLine($"Lowercase: {lower}");
+        int z = x * y;
+        Console.WriteLine("hasil perkalian: " + z);
 
-        // PascalCase
-        string pascal = ToPascalCase(input);
-        Console.WriteLine($"PascalCase: {pascal}");
+        //Perhitungan dua bilangan decimal
+        Console.Write("masukan Nilai decimal pertama: ");
+        double a = double.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
 
-        // camelCase
-        string camel = ToCamelCase(input);
-        Console.WriteLine($"camelCase: {camel}");
-    }
-    static string ToPascalCase(string text)
-    {
-        TextInfo ti = CultureInfo.CurrentCulture.TextInfo;
-        string[] words = text.Split(new[] { ' ', '_', '-' }, StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < words.Length; i++)
-        {
-            words[i] = ti.ToTitleCase(words[i].ToLower());
-        }
-        return string.Join("", words);
-    }
-    static string ToCamelCase(string text)
-    {
-        string pascal = ToPascalCase(text);
-        if (string.IsNullOrEmpty(pascal))
-            return pascal;
-        return char.ToLower(pascal[0]) + pascal.Substring(1);
-        // Penjumlahan integer dan string
-        Console.WriteLine("\nMasukkan angka pertama (integer):");
-        int angka1 = int.Parse(Console.ReadLine());
+        Console.Write("masukan Nilai decimal kedua: ");
+        double b = double.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
 
-        Console.WriteLine("Masukkan angka kedua (string):");
-        string angka2Str = Console.ReadLine();
-        int angka2 = int.Parse(angka2Str);
+        double c = a + b;
+        Console.WriteLine("Hasil pemjumlahan: " + c);
 
-        int hasil = angka1 + angka2;
-        Console.WriteLine($"Hasil penjumlahan: {angka1} + {angka2} = {hasil}");
+        //pengurangan dua bilangan decimal
+        Console.Write("masukan Nilai decimal pertama: ");
+        double i = double.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+
+        Console.Write("masukan Nilai decimal kedua: ");
+        double j = double.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+
+        double k = i - j;
+        Console.WriteLine("Hasil pengurangan: " + k);
+
+        //pembagian dua bilangan decimal
+        Console.Write("masukan Nilai decimal pertama: ");
+        double m = double.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+
+        Console.Write("masukan Nilai decimal kedua: ");
+        double n = double.Parse(Console.ReadLine(), CultureInfo.InvariantCulture);
+
+        double o = m / n;
+        Console.WriteLine("Hasil pembagian: " + o);
+
+        //modulus dua bilangan integer
+        Console.Write("Masukan Nilai integer: ");
+        int s = int.Parse(Console.ReadLine());
+
+        Console.Write("Masukan Nilai Integer: ");
+        int t = int.Parse(Console.ReadLine());
+
+        int u = s % t;
+        Console.WriteLine("hasil modulus: " + u);
     }
 }
 
