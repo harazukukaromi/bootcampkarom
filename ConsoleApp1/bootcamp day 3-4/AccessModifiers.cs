@@ -1,61 +1,92 @@
-/*using System;
+using System;
 
-class AccessModifiers
+public class BaseClass
 {
-    public string publicField = "Hola, Saya Public"; // Bisa Diakses dari mana saja
-    private string privateField = "Hola, Saya Private"; // Hanya bisa diakses dalam kelas yang sama
-    protected string protectedField = "Hola, Saya Protected"; // Bisa diakses dalam kelas yang sama atau kelas turunan
-    internal string internalField = "Hola, Saya Internal"; // Bisa diakses dalam assembly yang sama
-    protected internal string protectedInternalField = "Hola, Saya Protected Internal"; // Bisa diakses dalam assembly yang sama atau dari kelas turunan di assembly lain
-    private protected string privateProtectedField = "Hola, saya Private Protected"; // Bisa diakses dalam kelas yang sama atau kelas turunan dalam assembly yang sama
+    public string publicField = "Public Field"; // Bisa diakses dari mana saja
+    private string privateField = "Private Field"; // Hanya di dalam BaseClass
+    protected string protectedField = "Protected Field"; // Di BaseClass dan derived class
+    internal string internalField = "Internal Field"; // Di assembly yang sama
+    protected internal string protectedInternalField = "Protected Internal Field"; // Di assembly sama atau derived class luar assembly
+    private protected string privateProtectedField = "Private Protected Field"; // Di BaseClass dan derived class di assembly sama
 
-    //call public method
-    public void PublicMethod()
+    public void ShowAccess()
     {
-        Console.WriteLine("Ini Method Public Hehe.");
+        Console.WriteLine(publicField);
+        Console.WriteLine(privateField);
+        Console.WriteLine(protectedField);
+        Console.WriteLine(internalField);
+        Console.WriteLine(protectedInternalField);
+        Console.WriteLine(privateProtectedField);
     }
-    //call private method
-    private void PrivateMethod()
+}
+
+public class DerivedClass : BaseClass
+{
+    public void TestAccess()
     {
-        Console.WriteLine("Ini Method Private Hehe.");
+        Console.WriteLine(publicField); // Accessible
+        // Console.WriteLine(privateField); // Not accessible
+        Console.WriteLine(protectedField); // Accessible (karena turunan)
+        Console.WriteLine(internalField); // Accessible (sama assembly)
+        Console.WriteLine(protectedInternalField); // Accessible
+        Console.WriteLine(privateProtectedField); // Accessible (karena turunan dalam assembly)
+
+        // Method calls
+        PublicMethod();
+        // PrivateMethod();   // Not accessible
+        ProtectedMethod();
+        InternalMethod();
+        ProtectedInternalMethod();
+        PrivateProtectedMethod();
     }
-    //call protected method
-    protected void ProtectedMethod()
+
+    public void AccessPrivateFieldInBase()
     {
-        Console.WriteLine("Ini Method Protected Hehe.");
+        // Tidak bisa akses privateField langsung karena private
+        // tapi bisa lewat method publik BaseClass
+        ShowAccess();
     }
-    //call internal method
-    internal void InternalMethod()
+
+    // Mengakses method dari BaseClass
+    public void PublicMethod() => Console.WriteLine("Public method");
+    private void PrivateMethod() => Console.WriteLine("Private method");
+    protected void ProtectedMethod() => Console.WriteLine("Protected method");
+    internal void InternalMethod() => Console.WriteLine("Internal method");
+    protected internal void ProtectedInternalMethod() => Console.WriteLine("Protected Internal method");
+    private protected void PrivateProtectedMethod() => Console.WriteLine("Private Protected method");
+}
+
+
+public class OtherClassInSameAssembly
+{
+    public void TestAccess()
     {
-        Console.WriteLine("Ini Method Internal Hehe.");
+        BaseClass obj = new BaseClass();
+
+        Console.WriteLine(obj.publicField); // Accessible
+        // Console.WriteLine(obj.privateField); // Not accessible
+        // Console.WriteLine(obj.protectedField); // Not accessible
+        Console.WriteLine(obj.internalField); // Accessible (assembly sama)
+        Console.WriteLine(obj.protectedInternalField); // Accessible (assembly sama)
+        // Console.WriteLine(obj.privateProtectedField); // Not accessible
     }
-    //call protected internal method
-    protected internal void ProtectedInternalMethod()
-    {
-        Console.WriteLine("Ini Method Protected Internal Hehe.");
-    }
-    //call private protected method
-    private protected void PrivateProtectedMethod()
-    {
-        Console.WriteLine("Ini Method Private Protected Hehe.");
-    }
-    //different accessibilty public, private, protected, internal, protected internal, private protected,
-    //example usage
+}
+
+class Program
+{
     static void Main()
     {
-        AccessModifiers accessModifiers = new AccessModifiers();
-        Console.WriteLine(accessModifiers.publicField); // Accessible
-        //Console.WriteLine(accessModifiers.privateField); // Not Accessible
-        //Console.WriteLine(accessModifiers.protectedField); // Not Accessible
-        Console.WriteLine(accessModifiers.internalField); // Accessible
-        Console.WriteLine(accessModifiers.protectedInternalField); // Accessible
-        //Console.WriteLine(accessModifiers.privateProtectedField); // Not Accessible
+        Console.WriteLine("Base Class");
+        BaseClass baseObj = new BaseClass();
+        baseObj.ShowAccess();
 
-        accessModifiers.PublicMethod(); // Accessible
-        //accessModifiers.PrivateMethod(); // Not Accessible
-        //accessModifiers.ProtectedMethod(); // Not Accessible
-        accessModifiers.InternalMethod(); // Accessible
-        accessModifiers.ProtectedInternalMethod(); // Accessible
-        //accessModifiers.PrivateProtectedMethod(); // Not Accessible
+        Console.WriteLine("DerivedClass TestAccess()");
+        DerivedClass derivedObj = new DerivedClass();
+        derivedObj.TestAccess();
+
+        Console.WriteLine("OtherClassInSameAssembly TestAccess()");
+        OtherClassInSameAssembly otherObj = new OtherClassInSameAssembly();
+        otherObj.TestAccess();
     }
-}*/
+}
+

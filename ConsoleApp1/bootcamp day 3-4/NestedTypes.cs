@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 public class NestedTypes
 {
@@ -72,4 +72,4 @@ class Program
         container.CurrentStatus = NestedTypes.Status.Completed;
         Console.WriteLine($"Current status: {container.CurrentStatus}");
     }
-}
+}*/
