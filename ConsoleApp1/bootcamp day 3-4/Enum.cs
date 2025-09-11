@@ -44,7 +44,7 @@ class Program
 {
     static void Main()
     {
-        Enum myClass = new Enum(Enum.Season.Spring);
+        Enum myClass = new Enum(Enum.Season.Spring); //Spring, Summer, Autumn, Winter
         myClass.DescribeSeason();
     }
 }
