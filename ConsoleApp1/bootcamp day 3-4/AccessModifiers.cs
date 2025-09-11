@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 class AccessModifiers
 {
@@ -45,8 +45,8 @@ class AccessModifiers
     {
         AccessModifiers accessModifiers = new AccessModifiers();
         Console.WriteLine(accessModifiers.publicField); // Accessible
-        Console.WriteLine(accessModifiers.privateField); // Not Accessible
-        Console.WriteLine(accessModifiers.protectedField); // Not Accessible
+        //Console.WriteLine(accessModifiers.privateField); // Not Accessible
+        //Console.WriteLine(accessModifiers.protectedField); // Not Accessible
         Console.WriteLine(accessModifiers.internalField); // Accessible
         Console.WriteLine(accessModifiers.protectedInternalField); // Accessible
         //Console.WriteLine(accessModifiers.privateProtectedField); // Not Accessible
@@ -58,4 +58,4 @@ class AccessModifiers
         accessModifiers.ProtectedInternalMethod(); // Accessible
         //accessModifiers.PrivateProtectedMethod(); // Not Accessible
     }
-}
+}*/
