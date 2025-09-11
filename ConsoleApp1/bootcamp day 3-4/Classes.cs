@@ -1,5 +1,5 @@
 // See https://aka.ms/new-console-template for more information
-using System;
+/*using System;
 
 class Classes
 {
@@ -30,4 +30,4 @@ class Classes
             Console.WriteLine($"Hello, my name is {name} and I am {height} cm.");
         }
     }
-}
+}*/

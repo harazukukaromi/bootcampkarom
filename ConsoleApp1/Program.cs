@@ -3,5 +3,4 @@ using System;
 
 class ConsoleApp1
 {
-    
 }
