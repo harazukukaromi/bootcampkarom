@@ -1,33 +1,48 @@
 // See https://aka.ms/new-console-template for more information
-/*using System;
+using System;
 
 class Classes
 {
-    static void Main(string[] args)
-    {
-        //create an instance of Person
-        Person person = new Person("Hikaromi", 130);
-        //call the Introduce method
-        person.Introduce();
-    }
     //classes
     class Person
     {
-        //fields
-        private string name;
-        private float height;
+        // fields
+        private string nama;
+        private float tinggibadan;
+        private int usia;
+        private bool status;
 
-        //constructor
-        public Person(string name, float height)
+        // constructor
+        public Person(string nama, float tinggibadan, int usia, bool status)
         {
-            this.name = name;
-            this.height = height;
+            this.nama = nama;
+            this.tinggibadan = tinggibadan;
+            this.usia = usia;
+            this.status = status;
         }
 
-        //methods
+        // methods
         public void Introduce()
         {
-            Console.WriteLine($"Hello, my name is {name} and I am {height} cm.");
+            Console.WriteLine($"Hello, my name is {nama}, I am {tinggibadan} cm tall, {usia} years old, and my status is {(status ? "true" : "false")}.");
         }
     }
-}*/
+
+    static void Main(string[] args)
+    {
+        // create an instance of Person
+        Person person = new Person("Hikaromi", 130f, 25, true);
+        person.Introduce();
+
+        Console.WriteLine($"Cube of 3 is {Cube(80)}");
+
+        // Local method to calculate cube
+        int Cube(int value) => value * value * value;
+        
+        Console.WriteLine($"Volume Tube is {VolumeTube(39.178, 12.476)}");
+
+        // Local method to calculate volume of a tube
+        double VolumeTube(double radius, double height) => Math.PI * radius * radius * height;
+    
+    }
+}
