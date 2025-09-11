@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 class Enum
 {
@@ -44,7 +44,7 @@ class Program
 {
     static void Main()
     {
-        Enum myClass = new Enum(Enum.Season.Spring); //Spring, Summer, Autumn, Winter
+        Enum myClass = new Enum(Enum.Season.Summer); //Spring, Summer, Autumn, Winter
         myClass.DescribeSeason();
     }
-}
+}*/
