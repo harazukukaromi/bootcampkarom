@@ -1,5 +1,4 @@
-using System;
-
+/*using System;
 public class Object
 {
     static void Main()
@@ -33,4 +32,4 @@ public class Object
             Console.WriteLine("Stack is empty");
         }
     }
-}
+}*/
