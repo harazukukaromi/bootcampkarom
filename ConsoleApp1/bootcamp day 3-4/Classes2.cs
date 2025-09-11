@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 class Classes2
 {
@@ -29,5 +29,5 @@ public class Panda
     {
         Console.WriteLine($"Hi, I'm a panda named {name}.");
     }
-}
+}*/
 
