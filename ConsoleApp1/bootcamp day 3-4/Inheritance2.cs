@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 public class Inheritance2
 {
@@ -34,4 +34,4 @@ public class Program
         Stock stock = new Stock { Name = "Tech Corp", SharesOwned = 100 };
         Console.WriteLine(stock.Liability);   // Output: 0 (Uses Asset's default)
     }
-}
+}*/

@@ -1,42 +1,37 @@
-/*using System;
-
-class Enum
+using System;
+public enum Musim
 {
-    // Enum didefinisikan di dalam class
-    public enum Season
+    None = 0,       //0000
+    Spring = 1 << 0,  //0001
+    Summer = 1 << 1,  //0010
+    Autumn = 1 << 2,  //0100
+    Winter = 1 << 3   //1000
+}
+
+class SeasonManager
+{
+    public Musim CurrentSeasons { get; set; }
+
+    public SeasonManager(Musim seasons)
     {
-        Spring,
-        Summer,
-        Autumn,
-        Winter
+        CurrentSeasons = seasons;
     }
 
-    public Season CurrentSeason { get; set; }
-
-    public Enum(Season season)
+    public void DescribeSeasons()
     {
-        CurrentSeason = season;
-    }
+        Console.WriteLine($"Current seasons: {CurrentSeasons}");
 
-    public void DescribeSeason()
-    {
-        Console.WriteLine($"Current season: {CurrentSeason}");
+        if (CurrentSeasons.HasFlag(Musim.Spring))
+            Console.WriteLine("Musim Semi: Mari bercocok tanam.");
 
-        switch (CurrentSeason)
-        {
-            case Season.Spring:
-                Console.WriteLine("Musim Semi Mari Bercocok tanam");
-                break;
-            case Season.Summer:
-                Console.WriteLine("Musim Panas Mari Merayakan Kembang api");
-                break;
-            case Season.Autumn:
-                Console.WriteLine("Musim gugur Waktunya Berpanen");
-                break;
-            case Season.Winter:
-                Console.WriteLine("Musim Dingin Mari menghangatkan Tubuh");
-                break;
-        }
+        if (CurrentSeasons.HasFlag(Musim.Summer))
+            Console.WriteLine("Musim Panas: Mari merayakan kembang api.");
+
+        if (CurrentSeasons.HasFlag(Musim.Autumn))
+            Console.WriteLine("Musim Gugur: Waktunya berpanen.");
+
+        if (CurrentSeasons.HasFlag(Musim.Winter))
+            Console.WriteLine("Musim Dingin: Mari menghangatkan tubuh.");
     }
 }
 
@@ -44,7 +39,14 @@ class Program
 {
     static void Main()
     {
-        Enum myClass = new Enum(Enum.Season.Summer); //Spring, Summer, Autumn, Winter
-        myClass.DescribeSeason();
+        // Contoh kombinasi musim Spring dan Summer
+        SeasonManager mySeasons = new SeasonManager(Musim.Spring | Musim.Summer);
+        mySeasons.DescribeSeasons();
+
+        Console.WriteLine();
+
+        // Contoh musim Winter saja
+        SeasonManager winterSeason = new SeasonManager(Musim.Winter );
+        winterSeason.DescribeSeasons();
     }
-}*/
+}
