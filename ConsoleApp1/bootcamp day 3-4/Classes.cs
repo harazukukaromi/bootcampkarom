@@ -8,12 +8,12 @@ class Classes
     {
         // fields
         private string nama;
-        private float tinggibadan;
+        private double tinggibadan;
         private int usia;
         private bool status;
 
         // constructor
-        public Person(string nama, float tinggibadan, int usia, bool status)
+        public Person(string nama, double tinggibadan, int usia, bool status)
         {
             this.nama = nama;
             this.tinggibadan = tinggibadan;
@@ -31,18 +31,18 @@ class Classes
     static void Main(string[] args)
     {
         // create an instance of Person
-        Person person = new Person("Hikaromi", 130f, 25, true);
+        Person person = new Person("Hikaromi", 168.24, 25, true);
         person.Introduce();
 
         Console.WriteLine($"Cube of 3 is {Cube(80)}");
 
         // Local method to calculate cube
         int Cube(int value) => value * value * value;
-        
+
         Console.WriteLine($"Volume Tube is {VolumeTube(39.178, 12.476)}");
 
         // Local method to calculate volume of a tube
-        double VolumeTube(double radius, double height) => Math.PI * radius * radius * height;
-    
+        double VolumeTube(double radius,double height) => Math.PI * radius * radius * height;
+
     }
 }
