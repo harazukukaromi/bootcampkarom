@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 class Generics
 {
@@ -31,4 +31,4 @@ class Generics
             array[index] = value;
         }
     }
-}
+}*/
