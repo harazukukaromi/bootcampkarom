@@ -1,14 +1,14 @@
 // See https://aka.ms/new-console-template for more information
-/*using System;
+using System;
 
 class Inheritance
 {
     //inheritance
     class Animal
     {
-        public void Nyokot()
+        public void Berbulu()
         {
-            Console.WriteLine("Nyokot.Aw");
+            Console.WriteLine("Punya Bulu");
         }
     }
     class Dog : Animal
@@ -24,15 +24,27 @@ class Inheritance
             Console.WriteLine("MiawMiaw");
         }
     }
+        class Sheep : Animal
+    {
+        public void Mbeek()
+        {
+            Console.WriteLine("Mbeek");
+        }
+    }
+
         static void Main(string[] args)
         {
             Dog dog = new Dog();
-            dog.Nyokot(); //inherited method
+            dog.Berbulu(); //inherited method
             dog.Gonggong();
 
             Cat cat = new Cat();
-            cat.Nyokot(); //inherited method
+            cat.Berbulu(); //inherited method
             cat.Miaw();
+
+            Sheep sheep = new Sheep();
+            sheep.Berbulu(); //inherited method
+            sheep.Mbeek();
         }
     }
-}*/
+}

@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 public class BaseClass
 {
@@ -88,5 +88,5 @@ class Program
         OtherClassInSameAssembly otherObj = new OtherClassInSameAssembly();
         otherObj.TestAccess();
     }
-}
+}*/
 
