@@ -1,44 +1,38 @@
-using System;
+/*using System;
 
 class Interface
 {
+    //expicit Interface 
+    interface I1 { void Foo(); }
+    interface I2 { int Foo(); }
 
-    // Interface dasar
-    public interface IVehicle
+    public class Widget : I1, I2 // Implements both interfaces
     {
-        void Start();
-        void Stop();
-    }
-
-    // Interface yang memperluas IVehicle
-    public interface ICar : IVehicle
-    {
-        void OpenTrunk();
-    }
-    // Implementasi dari interface ICar
-    public class Sedan : ICar
-    {
-        public void Start()
+        // Implicit implementation for I1.Foo()
+        public void Foo()
         {
-            Console.WriteLine("Car started.");
+            Console.WriteLine("Widget's implementation of I1.Foo");
         }
 
-        public void Stop()
+        // Explicit implementation for I2.Foo()
+        // Note the interface name preceding the member name, and no access modifier.
+        int I2.Foo()
         {
-            Console.WriteLine("Car stopped.");
-        }
-
-        public void OpenTrunk()
-        {
-            Console.WriteLine("Trunk opened.");
+            Console.WriteLine("Widget's implementation of I2.Foo");
+            return 36;
         }
     }
-    public static void Main(string[] args)
+    public static void Main()
     {
-        
-        ICar myCar = new Sedan();
-        myCar.Start();
-        //myCar.Stop();
-        //myCar.OpenTrunk();
+        Widget widget = new Widget();
+
+        // Memanggil Foo() dari I1 (implicit)
+        widget.Foo();
+
+        // Memanggil Foo() dari I2 (explicit) harus melalui interface
+        I2 i2Widget = widget;
+        int result = i2Widget.Foo();
+        Console.WriteLine($"Result from I2.Foo(): {result}");
     }
-}
+}*/
+
