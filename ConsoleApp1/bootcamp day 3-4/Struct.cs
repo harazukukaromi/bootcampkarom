@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 class Struct
 {
@@ -49,8 +49,8 @@ class Struct
     //readonly function
     readonly struct Rectangle
     {
-        public readonly double length;
-        public readonly double width;
+        public readonly double length; //readonly
+        public readonly double width;  //readonly
 
         public Rectangle(double length, double width)
         {
@@ -65,4 +65,4 @@ class Struct
     }
     //ref Struct System.Span<T>
     ref struct Point1 {public int x, y; }
-}
+}*/
