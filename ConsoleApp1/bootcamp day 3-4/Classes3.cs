@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 class Classes3
 {
@@ -29,5 +29,5 @@ class Program
         (double width, double height) = rect;
         Console.WriteLine(width + " " + height); 
     }
-}
+}*/
 
