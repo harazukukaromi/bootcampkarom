@@ -2,37 +2,43 @@ using System;
 
 class Interface
 {
-    public interface IAnimal
+
+    // Interface dasar
+    public interface IVehicle
     {
-        bool IsMammal();
-        object CurrentAge{ get;}
-        void Eat();
+        void Start();
+        void Stop();
     }
-    public class Kelinci : IAnimal
+
+    // Interface yang memperluas IVehicle
+    public interface ICar : IVehicle
     {
-        public int age;
-        public Kelinci(int age)
+        void OpenTrunk();
+    }
+    // Implementasi dari interface ICar
+    public class Sedan : ICar
+    {
+        public void Start()
         {
-            this.age = age;
+            Console.WriteLine("Car started.");
         }
-        public bool IsMammal()
+
+        public void Stop()
         {
-            return false;
+            Console.WriteLine("Car stopped.");
         }
-        public object CurrentAge
+
+        public void OpenTrunk()
         {
-            get { return age; }
-        }
-        public void Eat()
-        {
-            Console.WriteLine("Kelinci is eating");
+            Console.WriteLine("Trunk opened.");
         }
     }
-    static void Main(string[] args)
+    public static void Main(string[] args)
     {
-        Kelinci kelinci = new Kelinci(5);
-        Console.WriteLine($"Is kelinci mammal? {kelinci.IsMammal()}");
-        Console.WriteLine($"Kelinci's age: {kelinci.CurrentAge}");
-        kelinci.Eat();
+        
+        ICar myCar = new Sedan();
+        myCar.Start();
+        //myCar.Stop();
+        //myCar.OpenTrunk();
     }
 }
