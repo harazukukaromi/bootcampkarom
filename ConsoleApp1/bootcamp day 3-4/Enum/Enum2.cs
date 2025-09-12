@@ -1,7 +1,8 @@
-using System;
+/*using System;
 
 public enum MoveDirection
 {
+    //Enum using Increment and Decrement
     IncreaseX,  // X++
     DecreaseX,  // X--
     IncreaseY,  // Y++
@@ -72,4 +73,4 @@ class Enum2
         point.Move(MoveDirection.DecreaseX);
         Console.WriteLine("After DecreaseX: " + point);  // X--
     }
-}
+}*/

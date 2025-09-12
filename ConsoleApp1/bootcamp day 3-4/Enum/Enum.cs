@@ -1,6 +1,7 @@
 /*using System;
 public enum Musim
 {
+    enum using codebyte
     None = 0,       //0000
     Spring = 1 << 0,  //0001
     Summer = 1 << 1,  //0010

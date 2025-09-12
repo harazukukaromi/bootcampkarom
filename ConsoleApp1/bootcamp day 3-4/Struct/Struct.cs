@@ -7,7 +7,7 @@ class Struct
         Point point = new Point(3, 4);
         point.Display();
         Circle circle = new Circle(91);
-        Console.WriteLine($"Lingkaran ini memiliki {circle.radius} Dan Luas{circle.Area()}");
+        Console.WriteLine($"Lingkaran ini memiliki {circle.radius} Dan Luas {circle.Area()}");
         Rectangle rectangle = new Rectangle(10, 5);
         Console.WriteLine($"Persegi Panjang ini memiliki panjang {rectangle.length} Dan Lebar {rectangle.width} dan Luas {rectangle.Area()}");
     }
@@ -21,7 +21,7 @@ class Struct
         //constructor
         public Point(int x, int y)
         {
-            this.x = x * 2 * y; // testing operation
+            this.x = x + -2; // testing operation
             this.y = y;
         }
 
@@ -63,6 +63,4 @@ class Struct
             return length * width;
         }
     }
-    //ref Struct System.Span<T>
-    ref struct Point1 {public int x, y; }
 }*/
