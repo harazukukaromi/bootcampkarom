@@ -34,7 +34,7 @@ public class DerivedClass : BaseClass
 
         // Method calls
         PublicMethod();
-        // PrivateMethod();   // Not accessible
+        //PrivateMethod();   // Not accessible
         ProtectedMethod();
         InternalMethod();
         ProtectedInternalMethod();
