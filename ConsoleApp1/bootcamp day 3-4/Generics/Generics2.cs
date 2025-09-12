@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 // Generic class
 public class GenericArray<T>
@@ -87,4 +87,4 @@ public class Generics2
 
         // Using strings
     }
-}
+}*/
