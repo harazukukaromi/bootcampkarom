@@ -1,5 +1,5 @@
 // See https://aka.ms/new-console-template for more information
-/*using System;
+using System;
 
 class Classes
 {
@@ -34,14 +34,14 @@ class Classes
         Person person = new Person("Hikaromi", 168.24, 25, true);
         person.Introduce();
 
-        Console.WriteLine($"Cube of 3 is {Cube(80)}");
+        Console.WriteLine($"Cube of 3 is {Cube(100)}");
 
         // Local method to calculate cube
         int Cube(int value) => value * value * value;
 
-        Console.WriteLine($"Volume Tube is {VolumeTube(39.178, 12.476)}");
+        Console.WriteLine($"Volume Tube is {VolumeTube(12.476, 32.675)}");
 
         // Local method to calculate volume of a tube
         double VolumeTube(double radius,double height) => Math.PI * radius * radius * height;
     }
-}*/
+}

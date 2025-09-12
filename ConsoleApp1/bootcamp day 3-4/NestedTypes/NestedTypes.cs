@@ -65,7 +65,7 @@ class Program
 
         // Membuat dan gunakan NestedStruct
         NestedTypes.NestedStruct nestedStruct = new NestedTypes.NestedStruct();
-        nestedStruct.Value = 400;
+        nestedStruct.Value = 325;
         nestedStruct.Display();
 
         // Menggunakan nested enum

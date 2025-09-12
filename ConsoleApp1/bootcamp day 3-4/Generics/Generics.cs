@@ -37,6 +37,7 @@ class Generics
         intArray.SwapItems(1, 9);
         intArray.SwapItems(2, 10);
         intArray.SwapItems(9, 10);
+        intArray.SwapItems(5, 6);
 
         Console.WriteLine("\nAfter swapping index :");
         for (int i = 0; i <= 10; i++)
