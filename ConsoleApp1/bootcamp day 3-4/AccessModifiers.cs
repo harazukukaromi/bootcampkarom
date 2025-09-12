@@ -2,6 +2,7 @@
 
 public class BaseClass
 {
+    //example in string
     public string publicField = "Public Field"; // Bisa diakses dari mana saja
     private string privateField = "Private Field"; // Hanya di dalam BaseClass
     protected string protectedField = "Protected Field"; // Di BaseClass dan derived class
@@ -72,7 +73,7 @@ public class OtherClassInSameAssembly
     }
 }
 
-class Program
+class AccessModifiers
 {
     static void Main()
     {

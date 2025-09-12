@@ -1,4 +1,4 @@
-using System;
+/*using System;
 public enum Musim
 {
     None = 0,       //0000
@@ -46,7 +46,7 @@ class Program
         Console.WriteLine();
 
         // Contoh musim Winter saja
-        SeasonManager winterSeason = new SeasonManager(Musim.Winter );
+        SeasonManager winterSeason = new SeasonManager(Musim.Winter);
         winterSeason.DescribeSeasons();
     }
-}
+}*/
