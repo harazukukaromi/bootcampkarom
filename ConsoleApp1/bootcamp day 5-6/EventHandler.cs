@@ -1,5 +1,6 @@
-using System;
+/*using System;
 
+//event handler part1
 public delegate void PriceChangedHandler(decimal oldPrice, decimal newPrice); // 1. Delegate
 
 public class Broadcaster
@@ -70,4 +71,4 @@ public class Program
         broadcaster.Price = -12.75m;
         broadcaster.Price = 30.23m;
     }
-}
+}*/
