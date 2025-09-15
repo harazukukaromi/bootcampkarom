@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 namespace GenericDelegateDemo
 {
@@ -63,4 +63,4 @@ namespace GenericDelegateDemo
                 values[i] = transformer(values[i]);
         }
     }
-}
+}*/

@@ -1,5 +1,5 @@
-﻿using System;
-/*
+﻿/*using System;
+
 Console.Write("input integer n: ");
 int n = int.Parse(Console.ReadLine());
 
