@@ -1,5 +1,5 @@
 // See https://aka.ms/new-console-template for more information
-using System;
+/*using System;
 
 class Classes
 {
@@ -42,9 +42,9 @@ class Classes
         Console.WriteLine($"Volume Tube is {VolumeTube(12.476, 32.675)}");
 
         // Local method to calculate volume of a tube
-        double VolumeTube(double radius, double height) => Math.PI * radius * radius /* * Math.Pow(radius, 2)*/ * height;
+        double VolumeTube(double radius, double height) => Math.PI * radius * radius * Math.Pow(radius, 2) * height;
 
         Console.WriteLine($"volume of Sphere is {Sphere(12.5)}");
         double Sphere(double value) => (4.0 / 3.0) * Math.PI * Math.Pow(value, 3);
     }
-}
+}*/
