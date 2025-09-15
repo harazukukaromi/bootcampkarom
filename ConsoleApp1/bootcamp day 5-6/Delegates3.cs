@@ -1,10 +1,8 @@
 /*using System;
 
-class Delegates3
+class Delegates3 { public int Square(int x) => x * x;}
 //Instace Method
-{
-    public int Square(int x) => x * x;
-}
+
 
 delegate int Transformer(int x);
 

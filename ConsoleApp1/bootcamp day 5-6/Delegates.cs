@@ -1,4 +1,4 @@
-using System;
+/*using System;
 
 namespace ConsoleApp1
 {
@@ -25,16 +25,16 @@ namespace ConsoleApp1
             //Console.Write(i + "  "); // Output: 1 4 9 
 
 
-            Transform(values, Cube);
-            foreach (int i in values)
-            Console.Write(i + "  "); // Output: 1 8 27
+            //Transform(values, Cube);
+            //foreach (int i in values)
+            //Console.Write(i + "  "); // Output: 1 8 27
             // running two in same time make last output input to new values
 
-            Transform(values, Square); // Use Square method as the plug-in
-            foreach (int i in values)
-            Console.Write(i + "  "); // if start cube it will be 1 64 729
+            //Transform(values, Square); // Use Square method as the plug-in
+            //foreach (int i in values)
+            //Console.Write(i + "  "); // if start cube it will be 1 64 729
         }
     }
-}
+}*/
 
 

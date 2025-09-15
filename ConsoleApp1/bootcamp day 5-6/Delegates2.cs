@@ -1,10 +1,8 @@
 /*using System;
 
-class Delegates2
+class Delegates2 {public static int Square(int x) => x * x;}
 //Static Method
-{
-    public static int Square(int x) => x * x;
-}
+
 
 delegate int Transformer(int x);
 
