@@ -23,7 +23,7 @@ public class Stock
     public Stock(string symbol)
     {
         this.symbol = symbol;
-        price = 23.0m;
+        price = 24.5m;
     }
 
     // 3. Event Declaration using EventHandler<T>
@@ -70,9 +70,11 @@ public class Program
 
         // Simulate price changes
         stock.Price = 27.10M;  // Initial set
+        stock.Price = 28.10M;  // price increase but not triggred alert
         stock.Price = 31.59M;  // Should trigger alert (over 10% increase)
         stock.Price = 31.59M;  // No event (price unchanged)
-        stock.Price = 28.00M;  // No alert (price dropped)
+        stock.Price = 28.00M;  // Should trigger alert (price droped over 10)
+        stock.Price = 27.10M;  // price dropped but not triggred alert
     }
 
     // Event handler (subscriber)
@@ -85,9 +87,9 @@ public class Program
         {
             Console.WriteLine("Alert: Stock price increased more than 10%!");
         }
-        if else (changePercent > -0.1M)
+        else if (changePercent < -0.1M)
         {
-            Console.WriteLine("Alert: Stock price Decreased more than 10%!")
+            Console.WriteLine("Alert: Stock price Decreased more than 10%!");
         }
     }
 }*/
