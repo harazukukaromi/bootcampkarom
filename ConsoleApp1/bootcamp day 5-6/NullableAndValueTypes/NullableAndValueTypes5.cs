@@ -1,4 +1,4 @@
-using System;
+/*using System;
 //Operator Lifting
 class Program
 {
@@ -73,4 +73,4 @@ class Program
             Console.WriteLine("z is NOT greater than 0 (or unknown)");
         }
     }
-}
+}*/
