@@ -1,5 +1,5 @@
-using System;
-
+/*using System;
+//Overloading true and false Operators
 public struct MaybeBool
 {
     private byte _value; // 0 = Unknown, 1 = False, 2 = True
@@ -72,4 +72,4 @@ class Program
         else
             Console.WriteLine("c evaluated to Unknown");
     }
-}
+}*/

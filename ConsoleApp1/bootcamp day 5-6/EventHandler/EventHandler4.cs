@@ -73,7 +73,7 @@ public class Program
         stock.Price = 28.10M;  // price increase but not triggred alert
         stock.Price = 31.59M;  // Should trigger alert (over 10% increase)
         stock.Price = 31.59M;  // No event (price unchanged)
-        stock.Price = 28.00M;  // Should trigger alert (price droped over 10)
+        stock.Price = 28.00M;  // Should trigger alert (price droped over 10%)
         stock.Price = 27.10M;  // price dropped but not triggred alert
     }
 

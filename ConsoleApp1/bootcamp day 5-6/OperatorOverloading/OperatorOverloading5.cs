@@ -1,4 +1,5 @@
 /*using System;
+//Custom Implicit and Explicit Conversions
 
 public struct Note
 {
