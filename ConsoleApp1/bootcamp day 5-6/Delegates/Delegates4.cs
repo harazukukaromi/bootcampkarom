@@ -18,8 +18,6 @@ namespace MulticastDelegateDemo
 
         static void MulticastDelegatesDemo()
         {
-            Console.WriteLine("4. MULTICAST DELEGATES - COMBINING MULTIPLE METHODS");
-            Console.WriteLine("===================================================");
 
             // Start with a single method
             ProgressReporter reporter = WriteProgressToConsole;
@@ -49,21 +47,22 @@ namespace MulticastDelegateDemo
             Console.WriteLine($"Only the last result is returned: {lastResult}");  // Will be 512 (cube), not 9 (square)
 
             Console.WriteLine();
-            */
+        */
             /* Console.WriteLine("\nMulticast Transformer with void return type:");
 
             Transformer multiTransformer = Square;
             multiTransformer += Cube;
 
             Console.WriteLine("Calling multicast Transformer (void):");
-            multiTransformer(8); // Akan memanggil Square(8), lalu Cube(8) */
-            /*
+            multiTransformer(8); // Akan memanggil Square(8), lalu Cube(8) */ 
+        /*
+            
         }
 
         static void WriteProgressToConsole(int percentComplete)
-{
-    Console.WriteLine($"  Console Log: {percentComplete}% complete");
-}
+        {
+            Console.WriteLine($"  Console Log: {percentComplete}% complete");
+        }
 
         static void WriteProgressToFile(int percentComplete)
         {
@@ -78,8 +77,8 @@ namespace MulticastDelegateDemo
 
         static int Square(int x) => x * x;
         static int Cube(int x) => x * x * x;
-        */
-        /*static void Square(int x)
+        
+        */ /*static void Square(int x)
         {
             int result = x * x;
             Console.WriteLine($"  Square({x}) = {result}");
@@ -89,6 +88,6 @@ namespace MulticastDelegateDemo
         {
             int result = x * x * x;
             Console.WriteLine($"  Cube({x}) = {result}");
-        }*/  /*  
+        }*/ /*
     }
 }*/
