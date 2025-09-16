@@ -1,4 +1,4 @@
-using System;
+/*using System;
 // Basic Null types
 class Program
 {
@@ -38,9 +38,9 @@ class Program
         Console.WriteLine($"Nullable DateTime: {(nullableDate.HasValue ? nullableDate.Value.ToString() : "null")}");
 
         // Assigning values later
-        nullableInt = 25;
-        nullableBool = true;
-        nullableDate = DateTime.Today;
+        nullableInt = 25; //30
+        nullableBool = true; //false
+        nullableDate = DateTime.Today; //new Datetime(2003, 8, 17)
 
         Console.WriteLine("\nAfter assigning values:");
         Console.WriteLine($"Nullable int: {(nullableInt.HasValue ? nullableInt.Value.ToString() : "null")}");
@@ -52,4 +52,4 @@ class Program
     {
         DemonstrateTheBasicProblem();
     }
-}
+}*/
