@@ -1,13 +1,13 @@
-using System;
+/*using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-
+//text encodings and Unicode
 class EncodingDemo
 {
     static void Main()
     {
-        string originalText = "Hello, World! 🌍 Café résumé";
+        string originalText = "Hello, World! Café résumé";
         Console.WriteLine($"Original text: {originalText}");
         Console.WriteLine($"Character count: {originalText.Length}");
 
@@ -36,7 +36,7 @@ class EncodingDemo
         // ASCII can't handle extended characters
         try
         {
-            byte[] asciiWithEmoji = Encoding.ASCII.GetBytes("Hello 🌍");
+            byte[] asciiWithEmoji = Encoding.ASCII.GetBytes("Hello ");
             string asciiDecoded = Encoding.ASCII.GetString(asciiWithEmoji);
             Console.WriteLine($"ASCII with emoji: '{asciiDecoded}' (emoji lost!)");
         }
@@ -84,4 +84,4 @@ class EncodingDemo
             File.Delete(tempFile);
         }
     }
-}
+}*/
