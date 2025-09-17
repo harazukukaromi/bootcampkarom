@@ -1,5 +1,5 @@
-using System;
-
+/*using System;
+//Overloading Increment and Decrement
 public class Counter
 {
     public int Value { get; private set; }
@@ -56,4 +56,4 @@ class Program
         counter--;
         Console.WriteLine($"After post-decrement (counter--): counter={counter.Value}, returned={postDec.Value}");
     }
-}
+}*/
