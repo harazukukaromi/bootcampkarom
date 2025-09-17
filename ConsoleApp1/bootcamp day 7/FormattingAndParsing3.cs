@@ -1,6 +1,7 @@
-using System;
+/*using System;
 using System.Globalization;
 using System.Text;
+//IFormatProvider and ICustomFormatter: Creating Custom Formatting Logic
 
 public class WordyFormatProvider : IFormatProvider, ICustomFormatter
 {
@@ -100,4 +101,4 @@ class Program
         // Format output with currency using parent format provider and words using custom "W" format
         Console.WriteLine(string.Format(fp, "{0:C} in words is {0:W}", n));
     }
-}
+}*/
