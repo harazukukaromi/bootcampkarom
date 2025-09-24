@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 
 Console.Write("input integer n: ");
 int n = int.Parse(Console.ReadLine());
@@ -19,4 +19,4 @@ for (int i = 1; i <= n; i++)
         Console.Write(result);
 
     Console.Write(",");
-}
+}*/
