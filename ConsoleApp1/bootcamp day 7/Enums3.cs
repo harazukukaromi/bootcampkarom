@@ -1,5 +1,5 @@
-using System;
-
+/*using System;
+//Enumarting Enums Values
 [Flags]
 public enum BorderSides
 {
@@ -9,7 +9,6 @@ public enum BorderSides
     Bottom = 8,
     LeftRight = Left | Right,
     RightTop = Right | Top,    // New combined flag
-    TopTopLeft = Top | Top | Left
 }
 
 class Program
@@ -21,5 +20,5 @@ class Program
             Console.WriteLine(value);
         }
     }
-}
+}*/
 
