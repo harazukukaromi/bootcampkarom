@@ -54,4 +54,69 @@ class Program
         Console.WriteLine($"Total Chips: {richGuy.Chips.Count}");
         Console.WriteLine($"Tipe Chip Pertama: {richGuy.Chips[0].Type} = {(int)richGuy.Chips[0].Type}");
     }
-}*/
+}
+class Program
+{
+    static void Main()
+    {
+        // bikin beberapa kartu manual
+        var cards = new List<ICard>
+        {
+            new Card(Suit.Hearts, Rank.Ace),
+            new Card(Suit.Hearts, Rank.Two),
+            new Card(Suit.Hearts, Rank.Three),
+            new Card(Suit.Hearts, Rank.Four),
+            new Card(Suit.Hearts, Rank.Five),
+            new Card(Suit.Clubs, Rank.Two),
+            new Card(Suit.Diamonds, Rank.Three)
+        };
+
+        var game = new PokerGame(new Table(new Deck()));
+
+        string bestHand = game.EvaluateBestHand(cards);
+
+        Console.WriteLine("Best Hand: " + bestHand); 
+        // Checking Output
+    }
+}
+public class Program
+//Testing Player
+    {
+        public static void Main()
+        {
+            var table = new Table(new Deck());
+            var game = new PokerGame(table);
+
+            var p1 = new HumanPlayer("Hikaromi", 1000);
+            var p2 = new HumanPlayer("Kanafrost", 1000);
+            var p3 = new HumanPlayer("Chun", 1000);
+            var p4 = new HumanPlayer("Skelek", 1000);
+            var p5 = new HumanPlayer("Patrick", 1000);
+
+            game.AddPlayer(p1); // bisa
+            game.AddPlayer(p1); // tidak bisa karena player sudah ada
+            game.AddPlayer(new HumanPlayer("Hikaromi", 1000)); // tidak bisa karena nama player sudah ada di game
+            game.AddPlayer(p2); // bisa
+            game.AddPlayer(p3); // bisa
+            game.AddPlayer(p4); // bisa
+            game.AddPlayer(p5); // tidak bisa karena player sudah maksimal
+ 
+            Console.WriteLine("\n--- Daftar pemain di meja ---");
+            foreach (var player in game.GetPlayers())
+            {
+                Console.WriteLine(player.Name);
+            }
+
+            // test hapus player
+            game.RemovePlayer(p2); // hapus Kanafrost
+            game.RemovePlayer(p3); // hapus Chun
+            game.RemovePlayer(p5); // gagal hapus karena tidak ada
+
+            Console.WriteLine("\n Daftar pemain setelah penghapusan ");
+            foreach (var player in game.GetPlayers())
+            {
+                Console.WriteLine(player.Name);
+            }
+        }
+    }
+*/
