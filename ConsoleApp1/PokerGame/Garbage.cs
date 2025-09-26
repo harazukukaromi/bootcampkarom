@@ -119,4 +119,197 @@ public class Program
             }
         }
     }
+
+    // tambahan kelas untuk sementara
+    private List<Chip> RemoveChipsFromPlayer(IPlayer player, int amount)
+    {
+        var removed = new List<Chip>();
+        int need = amount;
+        // try taking large chips first for efficiency
+        var ordering = new[] { ChipType.Black, ChipType.Green, ChipType.Red, ChipType.White };
+        foreach (var type in ordering)
+        {
+            while (need > 0 && player.Chips.Any(c => c.Type == type))
+            {
+                var chip = player.Chips.First(c => c.Type == type);
+                removed.Add(chip);
+                player.Chips.Remove(chip);
+                need -= (int)chip.Type;
+            }
+        }
+
+        // if player didn't have enough, they went all-in with removed chips (need may be >0)
+        if (need > 0)
+        {
+            // that's fine - all-in. removed contains all chips the player had.
+        }
+
+        // after removing, normalize player's chips (if some conversions possible)
+        NormalizeChips(player.Chips);
+
+        return removed;
+    }
+
+    private void AddChipsListToPot(IEnumerable<Chip> chips)
+    {
+        if (chips == null) return;
+        _table.Pot.AddRange(chips);
+        NormalizeChips(_table.Pot); // keep pot normalized
+    }
+
+    private void AddChipsListToPlayer(IPlayer player, IEnumerable<Chip> chips)
+    {
+        if (chips == null) return;
+        player.Chips.AddRange(chips);
+        NormalizeChips(player.Chips);
+    }
+
+    private void NormalizeChips(List<Chip> chips)
+    {
+        if (chips == null) return;
+
+        // White -> Red : 5 whites -> 1 red
+        while (chips.Count(c => c.Type == ChipType.White) >= 5)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                var w = chips.First(c => c.Type == ChipType.White);
+                chips.Remove(w);
+            }
+            chips.Add(new Chip(ChipType.Red));
+        }
+
+        // Red -> Green : 2 reds -> 1 green
+        while (chips.Count(c => c.Type == ChipType.Red) >= 2)
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                var r = chips.First(c => c.Type == ChipType.Red);
+                chips.Remove(r);
+            }
+            chips.Add(new Chip(ChipType.Green));
+        }
+
+        // Green -> Black : 10 greens -> 1 black
+        while (chips.Count(c => c.Type == ChipType.Green) >= 10)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                var g = chips.First(c => c.Type == ChipType.Green);
+                chips.Remove(g);
+            }
+            chips.Add(new Chip(ChipType.Black));
+        }
+    }
+
+    private int GetPotValue() => _table.Pot.Sum(c => (int)c.Type);
+
+    private void SplitPotEvenlyAmong(List<IPlayer> winners)
+    {
+        if (winners == null || winners.Count == 0) return;
+        // naive equal-split: convert pot to total value, divide by winners, then distribute as AddChipsToPlayer
+        int total = GetPotValue();
+        int per = total / winners.Count;
+        _table.Pot.Clear();
+
+        foreach (var w in winners)
+        {
+            AddChipsToPlayerByAmount(w, per);
+            Console.WriteLine($"{w.Name} receives {per} from pot (split).");
+        }
+    }
+
+    private void AddChipsToPlayerByAmount(IPlayer player, int amount)
+    {
+        int remaining = amount;
+        var toAdd = new List<Chip>();
+        while (remaining > 0)
+        {
+            if (remaining >= (int)ChipType.Black) { toAdd.Add(new Chip(ChipType.Black)); remaining -= (int)ChipType.Black; }
+            else if (remaining >= (int)ChipType.Green) { toAdd.Add(new Chip(ChipType.Green)); remaining -= (int)ChipType.Green; }
+            else if (remaining >= (int)ChipType.Red) { toAdd.Add(new Chip(ChipType.Red)); remaining -= (int)ChipType.Red; }
+            else { toAdd.Add(new Chip(ChipType.White)); remaining -= (int)ChipType.White; }
+        }
+        player.Chips.AddRange(toAdd);
+        NormalizeChips(player.Chips);
+    }
+
+    // utility: display table state
+    public void ShowTableState()
+    {
+        Console.WriteLine("\n=== TABLE STATE ===");
+        Console.WriteLine("Players:");
+        foreach (var p in _players)
+        {
+            var chipGroups = p.Chips.GroupBy(c => c.Type).Select(g => $"{g.Key}x{g.Count()}");
+            Console.WriteLine($"- {p.Name} | Chips: {p.Chips.Sum(c => (int)c.Type)} [{string.Join(", ", chipGroups)}] | Folded: {p.IsFolded}");
+        }
+        Console.WriteLine($"Pot value: {GetPotValue()} | Pot chips: {string.Join(", ", _table.Pot.Select(c => c.Type))}");
+        ShowBoard();
+        Console.WriteLine("===================\n");
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Buat deck & table
+        IDeck deck = new Deck();
+        Table table = new Table(deck);
+
+        Console.WriteLine("=== Texas Hold'em Poker ===");
+        Console.Write("Masukkan jumlah player (1-4): ");
+        int jumlahPlayer = int.Parse(Console.ReadLine() ?? "2");
+
+        for (int i = 1; i <= jumlahPlayer; i++)
+        {
+            Console.WriteLine($"\nPlayer {i}:");
+
+            string pilihan;
+            while (true)
+            {
+                Console.Write("Pilih tipe (1 = Human, 2 = AI): ");
+                pilihan = Console.ReadLine()?.Trim() ?? "";
+
+                if (pilihan == "1" || pilihan == "2")
+                    break;
+
+                Console.WriteLine(" Input tidak valid! Harus 1 (Human) atau 2 (AI).");
+            }
+
+            Console.Write("Masukkan nama player: ");
+            string nama = Console.ReadLine() ?? $"Player{i}";
+
+            Console.Write("Masukkan jumlah chip awal (misal 1000): ");
+            int initialChips = int.Parse(Console.ReadLine() ?? "1000");
+
+            IPlayer player;
+
+            if (pilihan == "1")
+            {
+                player = new HumanPlayer(nama, initialChips);
+                Console.WriteLine($"{nama} (Human) ditambahkan ke meja dengan {initialChips} chips.");
+            }
+            else
+            {
+                player = new AIPlayer(nama, initialChips);
+                Console.WriteLine($"{nama} (AI) ditambahkan ke meja dengan {initialChips} chips.");
+            }
+
+            table.players.Add(player);
+        }
+
+        // Mulai game
+        PokerGame game = new PokerGame(table, null, null, deck, null);
+        game.StartGame();
+    }
+}
+
+
+public string EvaluateHand(List<ICard> handCards, List<ICard> communityCards)
+    {
+        var allCards = handCards.Concat(communityCards).ToList();
+        return EvaluateBestHand(allCards);
+    }
 */
