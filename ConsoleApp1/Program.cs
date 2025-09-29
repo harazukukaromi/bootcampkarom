@@ -7,13 +7,12 @@ public class MyClass
 
     public void AddRule(int input, string output)
     {
-        if (input <= 0)
+        if (input <= 0) // pembaginya harus lebih dari 0
             throw new ArgumentException("Divisor must be greater than zero.");
 
         rules[input] = output;
     }
 
-    // Method to generate output up to a given limit
     public void Generate(int n)
     {
         for (int i = 1; i <= n; i++)
@@ -55,7 +54,7 @@ class Program
         MyClass.AddRule(7, "jazz");
         MyClass.AddRule(9, "huzz");
 
-        //print output
+        //print output dari integer n
         MyClass.Generate(n);
     }
 }
