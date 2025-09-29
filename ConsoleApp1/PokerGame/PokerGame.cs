@@ -64,6 +64,8 @@ public interface IDeck
 {
     List<ICard> Cards { get; }
     int CardsRemaining { get; }
+    void Initialize();
+    void Shuffle(Random rng);
 }
 public interface IHand
 {
@@ -100,6 +102,25 @@ public class Deck : IDeck
     private List<ICard> _cards = new();
     public List<ICard> Cards => _cards;
     public int CardsRemaining => _cards.Count;
+
+     public void Initialize()
+    {
+        _cards.Clear();
+        foreach (Suit s in Enum.GetValues(typeof(Suit)))
+            foreach (Rank r in Enum.GetValues(typeof(Rank)))
+                _cards.Add(new Card(s, r));
+    }
+
+    public void Shuffle(Random rng)
+    {
+        int n = _cards.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = rng.Next(n + 1);
+            (_cards[k], _cards[n]) = (_cards[n], _cards[k]);
+        }
+    }
 }
 public class Hand : IHand
 {
@@ -128,6 +149,26 @@ public class HumanPlayer : IPlayer
         Name = name;
         for (int i = 0; i < initialChips / 10; i++)
             Chips.Add(new Chip(ChipType.White));
+        NormalizeChips(Chips);
+    }
+    private void NormalizeChips(List<Chip> chips)
+    {
+        if (chips == null) return;
+        while (chips.Count(c => c.Type == ChipType.White) >= 5)
+        {
+            for (int i = 0; i < 5; i++) chips.Remove(chips.First(c => c.Type == ChipType.White));
+            chips.Add(new Chip(ChipType.Red));
+        }
+        while (chips.Count(c => c.Type == ChipType.Red) >= 2)
+        {
+            for (int i = 0; i < 2; i++) chips.Remove(chips.First(c => c.Type == ChipType.Red));
+            chips.Add(new Chip(ChipType.Green));
+        }
+        while (chips.Count(c => c.Type == ChipType.Green) >= 10)
+        {
+            for (int i = 0; i < 10; i++) chips.Remove(chips.First(c => c.Type == ChipType.Green));
+            chips.Add(new Chip(ChipType.Black));
+        }
     }
 }
 public class AIPlayer : IPlayer
@@ -143,6 +184,26 @@ public class AIPlayer : IPlayer
         Name = name;
         for (int i = 0; i < initialChips / 10; i++)
             Chips.Add(new Chip(ChipType.White));
+        NormalizeChips(Chips);
+    }
+    private void NormalizeChips(List<Chip> chips)
+    {
+        if (chips == null) return;
+        while (chips.Count(c => c.Type == ChipType.White) >= 5)
+        {
+            for (int i = 0; i < 5; i++) chips.Remove(chips.First(c => c.Type == ChipType.White));
+            chips.Add(new Chip(ChipType.Red));
+        }
+        while (chips.Count(c => c.Type == ChipType.Red) >= 2)
+        {
+            for (int i = 0; i < 2; i++) chips.Remove(chips.First(c => c.Type == ChipType.Red));
+            chips.Add(new Chip(ChipType.Green));
+        }
+        while (chips.Count(c => c.Type == ChipType.Green) >= 10)
+        {
+            for (int i = 0; i < 10; i++) chips.Remove(chips.First(c => c.Type == ChipType.Green));
+            chips.Add(new Chip(ChipType.Black));
+        }
     }
 }
 
@@ -154,7 +215,7 @@ public class Table : ITable
 
     public Table(IDeck deck)
     {
-        Deck = deck;
+        Deck = deck ?? throw new ArgumentNullException(nameof(deck));
     }
 }
 public class PokerGame
@@ -181,38 +242,19 @@ public class PokerGame
         _random = new Random();
         _communityCards = new List<ICard>();
 
-        // if external deck provided, prefer table's deck; ensure deck is initialized elsewhere
-        if (_table.Deck == null && deck != null)
-        {
-            // nothing to do here unless you change Table implementation; assume table.Deck set
-        }
-
-        // optional initial player
-        if (player != null)
-            AddPlayer(player);
-
-        // optional initial community card
-        if (card != null)
-            _communityCards.Add(card);
-
-        // optional initial chip into pot
-        if (chip != null)
-            _table.Pot.Add(new Chip(chip.Type));
-
         // defaults
         _minRaise = 5;
         _bigBlind = 10;
         _smallBlindIndex = 0;
         _bigBlindIndex = 1;
     }
-    public void StartGame()
+     public void StartGame()
     {
-        Console.WriteLine("Game Start!");
-        ResetDeck();         // refill deck
-        ShuffleDeck();
+        Console.WriteLine("=== Game Start ===");
+        ResetDeck();
         _communityCards.Clear();
         _players.Clear();
-        _players.AddRange(_table.players); // sync players list
+        _players.AddRange(_table.players);
 
         if (_players.Count < 2)
         {
@@ -223,19 +265,11 @@ public class PokerGame
         ResetRound();
         PostBlinds();
         DealCards();
-        BettingRounds(); // pre-flop
+        BettingRounds(); // Pre-flop
 
-        // Flop
-        DealCommunityCards(3);
-        BettingRounds();
-
-        // Turn
-        DealCommunityCards(1);
-        BettingRounds();
-
-        // River
-        DealCommunityCards(1);
-        BettingRounds();
+        DealCommunityCards(3); BettingRounds(); // Flop
+        DealCommunityCards(1); BettingRounds(); // Turn
+        DealCommunityCards(1); BettingRounds(); // River
 
         Showdown();
         DistributePot();
@@ -249,7 +283,6 @@ public class PokerGame
     {
         _communityCards.Clear();
         _currentBet = 0;
-        // reset player state
         foreach (var p in _players)
         {
             p.IsFolded = false;
@@ -260,10 +293,9 @@ public class PokerGame
     }
     private void DealCards()
     {
-        Console.WriteLine("\n-- Dealing 2 hole cards to each player --");
+        Console.WriteLine("\n-- Dealing hole cards --");
         foreach (var p in _players)
         {
-            // draw 2 cards
             var c1 = DealCardDeck();
             var c2 = DealCardDeck();
             ((Hand)p.Hand).AddCard(c1);
@@ -275,10 +307,7 @@ public class PokerGame
     {
         Console.WriteLine($"\n-- Dealing {count} community card(s) --");
         for (int i = 0; i < count; i++)
-        {
-            var c = DealCardDeck();
-            _communityCards.Add(c);
-        }
+            _communityCards.Add(DealCardDeck());
         ShowBoard();
     }
     private void ShowBoard()//tambahan kelas untuk menampilkan class untuk show card
@@ -293,13 +322,23 @@ public class PokerGame
     }
     private void PostBlinds()
     {
-        Console.WriteLine("Board:");
-        if (_communityCards.Count == 0) Console.WriteLine("  (empty)");
-        else
-        {
-            foreach (var c in _communityCards)
-                Console.WriteLine($"  {c.Rank} of {c.Suit}");
-        }
+        if (_players.Count < 2) return;
+        var sb = _players[_smallBlindIndex % _players.Count];
+        var bb = _players[_bigBlindIndex % _players.Count];
+
+        int smallAmt = _bigBlind / 2;
+        var sbChips = RemoveChipsFromPlayer(sb, smallAmt);
+        AddChipsListToPot(sbChips);
+        sb.CurrentBet = smallAmt;
+
+        var bbChips = RemoveChipsFromPlayer(bb, _bigBlind);
+        AddChipsListToPot(bbChips);
+        bb.CurrentBet = _bigBlind;
+
+        _currentBet = _bigBlind;
+
+        Console.WriteLine($"{sb.Name} posts small blind {smallAmt}");
+        Console.WriteLine($"{bb.Name} posts big blind {_bigBlind}");
     }
     private void BettingRounds()
     {
@@ -318,48 +357,11 @@ public class PokerGame
                 continue;
             }
 
-            // decide action via callback if provided
-            PlayerAction action = PlayerAction.Call;
-            if (OnPlayerDecision != null)
-            {
-                try { action = OnPlayerDecision(p, _currentBet, _minRaise); }
-                catch { action = PlayerAction.Call; }
-            }
-
-            if (action == PlayerAction.Fold)
-            {
-                p.IsFolded = true;
-                Console.WriteLine($"{p.Name} folds.");
-                continue;
-            }
-
-            if (action == PlayerAction.AllIn)
-            {
-                int have = p.Chips.Sum(c => (int)c.Type);
-                var chipsAllIn = RemoveChipsFromPlayer(p, have);
-                AddChipsListToPot(chipsAllIn);
-                p.CurrentBet += have;
-                Console.WriteLine($"{p.Name} goes ALL IN with {have}.");
-                if (have > _currentBet) _currentBet = have;
-                continue;
-            }
-
-            if (action == PlayerAction.Raise)
-            {
-                int raiseAmount = _minRaise; // default raise
-                var raiseChips = RemoveChipsFromPlayer(p, needToCall + raiseAmount);
-                AddChipsListToPot(raiseChips);
-                p.CurrentBet += needToCall + raiseAmount;
-                _currentBet = p.CurrentBet;
-                Console.WriteLine($"{p.Name} raises to {_currentBet}.");
-                continue;
-            }
-
             // default Call
             var callChips = RemoveChipsFromPlayer(p, needToCall);
             AddChipsListToPot(callChips);
-            p.CurrentBet += needToCall;
-            Console.WriteLine($"{p.Name} calls {needToCall}.");
+            p.CurrentBet += callChips.Sum(c => (int)c.Type);
+            Console.WriteLine($"{p.Name} calls {needToCall}");
         }
     }
     private void ProcessPlayerTurn(IPlayer player, PlayerAction action)
@@ -369,10 +371,7 @@ public class PokerGame
     private void Showdown()
     {
         Console.WriteLine("\n-- Showdown --");
-        // Evaluate best hand for each non-folded player
-        // ganti definisi results
         List<(IPlayer player, HandResult result)> results = new();
-
 
         foreach (var p in _players)
         {
@@ -382,10 +381,29 @@ public class PokerGame
             HandResult result = EvaluateHand(playerCards, _communityCards);
 
             results.Add((p, result));
-            Console.WriteLine($"{p.Name}: {result.Name} (Strength: {result.Strength}) " +
-                            $"Kickers: {string.Join(", ", result.Kickers)}");
-        }
 
+            string holeCards = string.Join(", ", playerCards.Select(c => $"{c.Rank} of {c.Suit}"));
+
+            // Ambil 5 kartu terbaik (rank + suit)
+            var allCards = playerCards.Concat(_communityCards).ToList();
+            var best5 = GetCombinations(allCards, 5)
+                        .Select(combo => EvaluateFiveCardHand(combo))
+                        .OrderByDescending(r => r.Strength)
+                        .ThenByDescending(r => r.Kickers, Comparer<List<int>>.Create(CompareKickers))
+                        .First();
+
+            string kickerNames = string.Join(", ",
+                best5.Kickers.Select(v =>
+                {
+                    // Ambil kartu dengan rank sesuai kicker
+                    var card = allCards.FirstOrDefault(c => (int)c.Rank == v);
+                    return card != null ? $"{card.Rank} of {card.Suit}" : ((Rank)v).ToString();
+                }));
+
+            Console.WriteLine($"{p.Name}: {result.Name} (Strength: {result.Strength})");
+            Console.WriteLine($"   Hole Cards : {holeCards}");
+            Console.WriteLine($"   Kickers    : {kickerNames}");
+        }
 
         if (results.Count == 0)
         {
@@ -393,18 +411,32 @@ public class PokerGame
             return;
         }
 
-        // find winner(s)
-        int best = results.Max(r => r.result.Strength);
+        // Cari hand terbaik
+        int bestStrength = results.Max(r => r.result.Strength);
+        var bestCandidates = results.Where(r => r.result.Strength == bestStrength).ToList();
 
-    var winners = results
-        .Where(r => r.result.Strength == best)
-        .Select(r => r.player)
-        .ToList();
+        var winners = new List<IPlayer>();
+        HandResult bestResult = bestCandidates[0].result;
+        winners.Add(bestCandidates[0].player);
+
+        for (int i = 1; i < bestCandidates.Count; i++)
+        {
+            int cmp = CompareKickers(bestCandidates[i].result.Kickers, bestResult.Kickers);
+            if (cmp > 0)
+            {
+                winners.Clear();
+                winners.Add(bestCandidates[i].player);
+                bestResult = bestCandidates[i].result;
+            }
+            else if (cmp == 0)
+            {
+                winners.Add(bestCandidates[i].player);
+            }
+        }
 
         if (winners.Count == 1)
         {
-            Console.WriteLine($"Winner: {winners[0].Name}");
-            // transfer pot chips to winner
+            Console.WriteLine($"Winner: {winners[0].Name} with {results.First(r => r.player == winners[0]).result.Name}");
             var potChips = _table.Pot.ToList();
             _table.Pot.Clear();
             AddChipsListToPlayer(winners[0], potChips);
@@ -412,7 +444,6 @@ public class PokerGame
         else
         {
             Console.WriteLine("Tie between: " + string.Join(", ", winners.Select(w => w.Name)));
-            // split pot evenly by value - simple approach: distribute chips equally as lists (not perfect)
             SplitPotEvenlyAmong(winners);
         }
     }
@@ -425,92 +456,195 @@ public class PokerGame
     {
         public string Name { get; set; } = "High Card";
         public int Strength { get; set; } = 1;
-        public List<int> Kickers { get; set; } = new(); // untuk pembanding tambahan
-    }
+        public List<int> Kickers { get; set; } = new(); 
 
+        // helper: konversi ke nama kartu
+        public string KickersAsString => string.Join(", ", Kickers.Select(v => ((Rank)v).ToString()));
+    }
 
     private HandResult EvaluateBestHand(List<ICard> cards)
      {
         var allCombos = GetCombinations(cards, 5);
-
-        HandResult best = new HandResult { Name = "High Card", Strength = 1, Kickers = new List<int>() };
-
+        HandResult best = new HandResult();
         foreach (var combo in allCombos)
         {
             var result = EvaluateFiveCardHand(combo);
-
             if (result.Strength > best.Strength ||
                 (result.Strength == best.Strength && CompareKickers(result.Kickers, best.Kickers) > 0))
-            {
                 best = result;
-            }
         }
-
         return best;
     }
     private HandResult EvaluateFiveCardHand(List<ICard> cards)
     {
-        string hand;
-        if (IsRoyalFlush(cards)) hand = "Royal Flush";
-        else if (IsStraightFlush(cards)) hand = "Straight Flush";
-        else if (IsFourOfAKind(cards)) hand = "Four of a Kind";
-        else if (IsFullHouse(cards)) hand = "Full House";
-        else if (IsFlush(cards)) hand = "Flush";
-        else if (IsStraight(cards)) hand = "Straight";
-        else if (IsThreeOfAKind(cards)) hand = "Three of a Kind";
-        else if (IsTwoPair(cards)) hand = "Two Pair";
-        else if (IsOnePair(cards)) hand = "One Pair";
-        else hand = "High Card";
+        // Urutkan kartu (tinggi ke rendah)
+        var sorted = cards.OrderByDescending(c => c.Rank).ToList();
 
-        // Urutkan kartu dari yang paling tinggi → untuk kickers
-        var sortedRanks = cards
-            .Select(c => (int)c.Rank)
-            .OrderByDescending(v => v)
-            .ToList();
+        // Kelompokkan rank
+        var groups = cards.GroupBy(c => c.Rank)
+                        .OrderByDescending(g => g.Count())
+                        .ThenByDescending(g => g.Key)
+                        .ToList();
 
-        var result = new HandResult
+        // Royal Flush
+        if (IsRoyalFlush(cards))
         {
-            Name = hand,
-            Strength = GetHandStrength(hand),
-            Kickers = sortedRanks
-        };
-
-        // Tambahkan informasi kicker khusus High Card
-        if (hand == "High Card")
+            return new HandResult
             {
-                var rankNames = cards
-                    .OrderByDescending(c => c.Rank)
-                    .Select(c => c.Rank.ToString())
-                    .ToList();
+                Name = "Royal Flush",
+                Strength = GetHandStrength("Royal Flush"),
+                Kickers = new List<int> { (int)Rank.Ace, (int)Rank.King, (int)Rank.Queen, (int)Rank.Jack, (int)Rank.Ten }
+            };
+        }
 
-                string mainHigh = rankNames.First();
-                string kickerInfo = string.Join(", ", rankNames.Skip(1));
+        // Straight Flush
+        if (IsStraightFlush(cards))
+        {
+            var straightFlush = sorted.Select(c => (int)c.Rank).OrderByDescending(r => r).Take(5).ToList();
+            return new HandResult
+            {
+                Name = "Straight Flush",
+                Strength = GetHandStrength("Straight Flush"),
+                Kickers = straightFlush
+            };
+        }
 
-                result.Name = $"High Card {mainHigh} (Kickers: {kickerInfo})";
+        // Four of a Kind
+        if (IsFourOfAKind(cards))
+        {
+            var quad = groups.First(g => g.Count() == 4).Key;
+            var kicker = groups.First(g => g.Count() == 1).Key;
+            return new HandResult
+            {
+                Name = "Four of a Kind",
+                Strength = GetHandStrength("Four of a Kind"),
+                Kickers = Enumerable.Repeat((int)quad, 4).Concat(new[] { (int)kicker }).ToList()
+            };
+        }
+
+        // Full House
+        if (IsFullHouse(cards))
+        {
+            var three = groups.First(g => g.Count() == 3).Key;
+            var pair = groups.First(g => g.Count() == 2).Key;
+            return new HandResult
+            {
+                Name = "Full House",
+                Strength = GetHandStrength("Full House"),
+                Kickers = Enumerable.Repeat((int)three, 3).Concat(Enumerable.Repeat((int)pair, 2)).ToList()
+            };
+        }
+
+        // Flush
+        if (IsFlush(cards))
+        {
+            var flushSuit = cards.GroupBy(c => c.Suit).First(g => g.Count() >= 5).Key;
+            var flush5 = cards.Where(c => c.Suit == flushSuit)
+                            .OrderByDescending(c => c.Rank)
+                            .Take(5)
+                            .Select(c => (int)c.Rank)
+                            .ToList();
+
+            return new HandResult
+            {
+                Name = "Flush",
+                Strength = GetHandStrength("Flush"),
+                Kickers = flush5
+            };
+        }
+
+        // Straight
+        if (IsStraight(cards))
+        {
+            var ranks = cards.Select(c => (int)c.Rank).Distinct().ToList();
+            if (ranks.Contains((int)Rank.Ace)) ranks.Add(1); // Ace low
+            ranks = ranks.OrderByDescending(r => r).ToList();
+
+            List<int> straight5 = new();
+            for (int i = 0; i < ranks.Count - 4; i++)
+            {
+                if (ranks[i] - ranks[i + 4] == 4)
+                {
+                    straight5 = ranks.Skip(i).Take(5).ToList();
+                    break;
+                }
             }
 
+            return new HandResult
+            {
+                Name = "Straight",
+                Strength = GetHandStrength("Straight"),
+                Kickers = straight5
+            };
+        }
 
-        return result;
+        // Three of a Kind
+        if (IsThreeOfAKind(cards))
+        {
+            var trips = groups.First(g => g.Count() == 3).Key;
+            var kickers = groups.Where(g => g.Count() == 1).Select(g => g.Key).OrderByDescending(r => r).Take(2).ToList();
+            return new HandResult
+            {
+                Name = "Three of a Kind",
+                Strength = GetHandStrength("Three of a Kind"),
+                Kickers = Enumerable.Repeat((int)trips, 3).Concat(kickers.Select(k => (int)k)).ToList()
+            };
+        }
+
+        // Two Pair
+        if (IsTwoPair(cards))
+        {
+            var pairs = groups.Where(g => g.Count() == 2).Select(g => g.Key).OrderByDescending(r => r).Take(2).ToList();
+            var kicker = groups.FirstOrDefault(g => g.Count() == 1)?.Key ?? Rank.Two;
+            return new HandResult
+            {
+                Name = "Two Pair",
+                Strength = GetHandStrength("Two Pair"),
+                Kickers = Enumerable.Repeat((int)pairs[0], 2)
+                        .Concat(Enumerable.Repeat((int)pairs[1], 2))
+                        .Concat(new[] { (int)kicker })
+                        .ToList()
+            };
+        }
+
+        // One Pair
+        if (IsOnePair(cards))
+        {
+            var pair = groups.First(g => g.Count() == 2).Key;
+            var kickers = groups.Where(g => g.Count() == 1).Select(g => g.Key).OrderByDescending(r => r).Take(3).ToList();
+            return new HandResult
+            {
+                Name = "One Pair",
+                Strength = GetHandStrength("One Pair"),
+                Kickers = Enumerable.Repeat((int)pair, 2).Concat(kickers.Select(k => (int)k)).ToList()
+            };
+        }
+
+        // High Card
+        var high5 = sorted.Take(5).Select(c => (int)c.Rank).ToList();
+        return new HandResult
+        {
+            Name = $"High Card {((Rank)high5.First()).ToString()}",
+            Strength = GetHandStrength("High Card"),
+            Kickers = high5
+        };
     }
-
 
     public IEnumerable<List<ICard>> GetCombinations(List<ICard> cards, int k)
     {
         int n = cards.Count;
+        if (k > n) yield break;
         int[] indices = new int[k];
         for (int i = 0; i < k; i++) indices[i] = i;
 
         while (true)
         {
             yield return indices.Select(i => cards[i]).ToList();
-
             int t = k - 1;
             while (t >= 0 && indices[t] == n - k + t) t--;
             if (t < 0) yield break;
-
             indices[t]++;
-            for (int i = t + 1; i < k; i++)
-                indices[i] = indices[i - 1] + 1;
+            for (int i = t + 1; i < k; i++) indices[i] = indices[i - 1] + 1;
         }
     }
     public HandResult EvaluateHand(List<ICard> handCards, List<ICard> communityCards)
@@ -529,18 +663,27 @@ public class PokerGame
         "Three of a Kind" => 4,
         "Two Pair" => 3,
         "One Pair" => 2,
-        "High Card" => 1
+        "High Card" => 1,
+        _ => 1
     };
     private int CompareKickers(List<int> k1, List<int> k2)
     {
-        int count = Math.Min(k1.Count, k2.Count);
+        if (k1 == null && k2 == null) return 0;
+        if (k1 == null) return -1;
+        if (k2 == null) return 1;
+
+        int count = Math.Max(k1.Count, k2.Count);
         for (int i = 0; i < count; i++)
         {
-            if (k1[i] > k2[i]) return 1;
-            if (k1[i] < k2[i]) return -1;
+            int v1 = i < k1.Count ? k1[i] : 0;
+            int v2 = i < k2.Count ? k2[i] : 0;
+
+            if (v1 > v2) return 1;
+            if (v1 < v2) return -1;
         }
         return 0;
     }
+
 
 
     private bool IsRoyalFlush(List<ICard> cards) =>
@@ -587,18 +730,6 @@ public class PokerGame
         cards.GroupBy(c => c.Rank).Count(g => g.Count() == 2) >= 2;
     private bool IsOnePair(List<ICard> cards) =>
         cards.GroupBy(c => c.Rank).Any(g => g.Count() == 2);
-    private bool IsHighCard(List<ICard> cards)
-    {
-        return !IsOnePair(cards) &&
-           !IsTwoPair(cards) &&
-           !IsThreeOfAKind(cards) &&
-           !IsStraight(cards) &&
-           !IsFlush(cards) &&
-           !IsFullHouse(cards) &&
-           !IsFourOfAKind(cards) &&
-           !IsStraightFlush(cards) &&
-           !IsRoyalFlush(cards);
-    }
     public void AddPlayer(IPlayer player)
     {
         if (_table.players.Count >= 4)
@@ -648,13 +779,11 @@ public class PokerGame
     }
     public void ResetDeck()
     {
-        {
-            _table.Deck.Cards.Clear();
-            foreach (Suit s in Enum.GetValues(typeof(Suit)))
-                foreach (Rank r in Enum.GetValues(typeof(Rank)))
-                    _table.Deck.Cards.Add(new Card(s, r));
-        }
+        if (_table.Deck == null) throw new InvalidOperationException("Table deck is null.");
+        _table.Deck.Initialize();
+        _table.Deck.Shuffle(_random);
     }
+    
     private void ShuffleDeck()// class tambahan sementar untuk mengocok deck
     {
         var deck = _table.Deck.Cards;
@@ -698,6 +827,7 @@ public class PokerGame
 
     }
     public PlayerAction MakeDecision(int currentBet, int minRaise) => PlayerAction.Call;
+    
     // tambahan kelas untuk sementara
     private List<Chip> RemoveChipsFromPlayer(IPlayer player, int amount)
     {
@@ -715,16 +845,7 @@ public class PokerGame
                 need -= (int)chip.Type;
             }
         }
-
-        // if player didn't have enough, they went all-in with removed chips (need may be >0)
-        if (need > 0)
-        {
-            // that's fine - all-in. removed contains all chips the player had.
-        }
-
-        // after removing, normalize player's chips (if some conversions possible)
         NormalizeChips(player.Chips);
-
         return removed;
     }
 
@@ -745,42 +866,28 @@ public class PokerGame
     private void NormalizeChips(List<Chip> chips)
     {
         if (chips == null) return;
-
         // White -> Red : 5 whites -> 1 red
         while (chips.Count(c => c.Type == ChipType.White) >= 5)
         {
-            for (int i = 0; i < 5; i++)
-            {
-                var w = chips.First(c => c.Type == ChipType.White);
-                chips.Remove(w);
-            }
+            for (int i = 0; i < 5; i++) chips.Remove(chips.First(c => c.Type == ChipType.White));
             chips.Add(new Chip(ChipType.Red));
         }
-
         // Red -> Green : 2 reds -> 1 green
         while (chips.Count(c => c.Type == ChipType.Red) >= 2)
         {
-            for (int i = 0; i < 2; i++)
-            {
-                var r = chips.First(c => c.Type == ChipType.Red);
-                chips.Remove(r);
-            }
+            for (int i = 0; i < 2; i++) chips.Remove(chips.First(c => c.Type == ChipType.Red));
             chips.Add(new Chip(ChipType.Green));
         }
-
         // Green -> Black : 10 greens -> 1 black
         while (chips.Count(c => c.Type == ChipType.Green) >= 10)
         {
-            for (int i = 0; i < 10; i++)
-            {
-                var g = chips.First(c => c.Type == ChipType.Green);
-                chips.Remove(g);
-            }
+            for (int i = 0; i < 10; i++) chips.Remove(chips.First(c => c.Type == ChipType.Green));
             chips.Add(new Chip(ChipType.Black));
         }
     }
 
-    private int GetPotValue() => _table.Pot.Sum(c => (int)c.Type);
+    private int GetPotValue() =>
+        _table.Pot.Sum(c => (int)c.Type);
 
     private void SplitPotEvenlyAmong(List<IPlayer> winners)
     {
@@ -860,6 +967,5 @@ class Program
         Console.ReadLine();
     }
 }
-
     
 
