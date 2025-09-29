@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Security.Cryptography.X509Certificates;
 //enum
 public enum Rank
 {
@@ -31,10 +30,12 @@ public enum Suit
 public enum PlayerAction
 {
     Fold,
+    Check,
     Call,
     Raise,
     AllIn
 }
+
 public enum GameEventType
 {
     GameStarted,
@@ -144,7 +145,7 @@ public class HumanPlayer : IPlayer
     public bool IsFolded { get; set; }
     public int CurrentBet { get; set; }
 
-    public HumanPlayer(string name, int initialChips)
+    public HumanPlayer(string name, int initialChips = 1000)
     {
         Name = name;
         for (int i = 0; i < initialChips / 10; i++)
@@ -179,7 +180,7 @@ public class AIPlayer : IPlayer
     public bool IsFolded { get; set; }
     public int CurrentBet { get; set; }
 
-    public AIPlayer(string name, int initialChips)
+    public AIPlayer(string name, int initialChips = 1000)
     {
         Name = name;
         for (int i = 0; i < initialChips / 10; i++)
@@ -343,31 +344,74 @@ public class PokerGame
     private void BettingRounds()
     {
         Console.WriteLine("\n-- Betting Round --");
-        // very simplified: each active player will 'call' current bet if possible,
-        // or go all-in with whatever they have
         foreach (var p in _players)
         {
             if (p.IsFolded) continue;
 
-            // compute how much player needs to call
-            int needToCall = _currentBet - p.CurrentBet;
-            if (needToCall <= 0)
-            {
-                Console.WriteLine($"{p.Name} checks.");
-                continue;
-            }
-
-            // default Call
-            var callChips = RemoveChipsFromPlayer(p, needToCall);
-            AddChipsListToPot(callChips);
-            p.CurrentBet += callChips.Sum(c => (int)c.Type);
-            Console.WriteLine($"{p.Name} calls {needToCall}");
+            PlayerAction action = MakeDecision(p, _currentBet, _minRaise);
+            ProcessPlayerTurn(p, action);
         }
     }
+
     private void ProcessPlayerTurn(IPlayer player, PlayerAction action)
     {
+        int playerChips = player.Chips.Sum(c => (int)c.Type);
+        int toCall = _currentBet - player.CurrentBet;
 
+        switch (action)
+        {
+            case PlayerAction.Fold:
+                player.IsFolded = true;
+                Console.WriteLine($"{player.Name} folds.");
+                break;
+
+            case PlayerAction.Check:
+                Console.WriteLine($"{player.Name} checks.");
+                break;
+
+            case PlayerAction.Call:
+                if (toCall <= 0)
+                {
+                    // Tidak ada bet → Call dianggap Check
+                    Console.WriteLine($"{player.Name} checks (no bet to call).");
+                }
+                else
+                {
+                    int callAmount = Math.Min(toCall, playerChips);
+                    var chips = RemoveChipsFromPlayer(player, callAmount);
+                    AddChipsListToPot(chips);
+                    player.CurrentBet += callAmount;
+                    Console.WriteLine($"{player.Name} calls {callAmount}");
+                }
+                break;
+
+            case PlayerAction.Raise:
+                int raiseAmount = toCall + _minRaise;
+                if (playerChips < raiseAmount)
+                {
+                    Console.WriteLine($"{player.Name} tidak cukup chip untuk Raise, otomatis AllIn.");
+                    goto case PlayerAction.AllIn;
+                }
+
+                var raiseChips = RemoveChipsFromPlayer(player, raiseAmount);
+                AddChipsListToPot(raiseChips);
+                player.CurrentBet += raiseAmount;
+                _currentBet = player.CurrentBet;
+                Console.WriteLine($"{player.Name} raises to {_currentBet}");
+                break;
+
+            case PlayerAction.AllIn:
+                var allinChips = RemoveChipsFromPlayer(player, playerChips);
+                AddChipsListToPot(allinChips);
+                player.CurrentBet += playerChips;
+                if (player.CurrentBet > _currentBet)
+                    _currentBet = player.CurrentBet;
+
+                Console.WriteLine($"{player.Name} goes ALL-IN with {playerChips}");
+                break;
+        }
     }
+
     private void Showdown()
     {
         Console.WriteLine("\n-- Showdown --");
@@ -826,8 +870,58 @@ public class PokerGame
     {
 
     }
-    public PlayerAction MakeDecision(int currentBet, int minRaise) => PlayerAction.Call;
-    
+    public PlayerAction MakeDecision(IPlayer player, int currentBet, int minRaise)
+    {
+        int playerChips = player.Chips.Sum(c => (int)c.Type);
+        int toCall = currentBet - player.CurrentBet;
+
+        if (player is AIPlayer)
+        {
+            var choices = new List<PlayerAction>();
+            if (toCall <= 0)
+            {
+                choices.Add(PlayerAction.Check);
+                if (playerChips >= minRaise) choices.Add(PlayerAction.Raise);
+                if (playerChips > 0) choices.Add(PlayerAction.AllIn);
+            }
+            else
+            {
+                choices.Add(PlayerAction.Call);
+                choices.Add(PlayerAction.Fold);
+                if (playerChips >= toCall + minRaise) choices.Add(PlayerAction.Raise);
+                if (playerChips > 0) choices.Add(PlayerAction.AllIn);
+            }
+            return choices[_random.Next(choices.Count)];
+        }
+
+        // Human
+        if (toCall <= 0)
+        {
+            Console.WriteLine($"{player.Name}, pilih aksi: [1] Check, [2] Raise, [3] AllIn, [4] Fold");
+            string input = Console.ReadLine();
+            return input switch
+            {
+                "1" => PlayerAction.Check,
+                "2" => PlayerAction.Raise,
+                "3" => PlayerAction.AllIn,
+                "4" => PlayerAction.Fold,
+                _ => PlayerAction.Check
+            };
+        }
+        else
+        {
+            Console.WriteLine($"{player.Name}, ada bet {currentBet}. Pilih aksi: [1] Call, [2] Raise, [3] AllIn, [4] Fold");
+            string input = Console.ReadLine();
+            return input switch
+            {
+                "1" => PlayerAction.Call,
+                "2" => PlayerAction.Raise,
+                "3" => PlayerAction.AllIn,
+                "4" => PlayerAction.Fold,
+                _ => PlayerAction.Call
+            };
+        }
+    }
     // tambahan kelas untuk sementara
     private List<Chip> RemoveChipsFromPlayer(IPlayer player, int amount)
     {
@@ -967,5 +1061,6 @@ class Program
         Console.ReadLine();
     }
 }
+
     
 
