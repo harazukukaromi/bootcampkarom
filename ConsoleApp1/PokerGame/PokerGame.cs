@@ -1,4 +1,4 @@
-
+/*
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -436,12 +436,32 @@ public class PokerGame
                         .ThenByDescending(r => r.Kickers, Comparer<List<int>>.Create(CompareKickers))
                         .First();
 
+            // Special case: flush
+            bool isFlush = best5.Name == "Flush";
+            Suit? flushSuit = null;
+            if (isFlush)
+                flushSuit = allCards.GroupBy(c => c.Suit).First(g => g.Count() >= 5).Key;
+
+            var usedIndex = new Dictionary<int, int>();
             string kickerNames = string.Join(", ",
                 best5.Kickers.Select(v =>
                 {
-                    // Ambil kartu dengan rank sesuai kicker
-                    var card = allCards.FirstOrDefault(c => (int)c.Rank == v);
-                    return card != null ? $"{card.Rank} of {card.Suit}" : ((Rank)v).ToString();
+                    if (!usedIndex.ContainsKey(v))
+                        usedIndex[v] = 0;
+
+                    var matchingCards = allCards
+                        .Where(c => (int)c.Rank == v && (!isFlush || c.Suit == flushSuit))
+                        .ToList();
+
+                    int idx = usedIndex[v];
+                    string resultStr;
+                    if (idx < matchingCards.Count)
+                        resultStr = $"{matchingCards[idx].Rank} of {matchingCards[idx].Suit}";
+                    else
+                        resultStr = ((Rank)v).ToString();
+
+                    usedIndex[v]++;
+                    return resultStr;
                 }));
 
             Console.WriteLine($"{p.Name}: {result.Name} (Strength: {result.Strength})");
@@ -491,6 +511,8 @@ public class PokerGame
             SplitPotEvenlyAmong(winners);
         }
     }
+
+
     private void DistributePot()
     {
         //untuk dealer kedepannya
@@ -583,19 +605,19 @@ public class PokerGame
         if (IsFlush(cards))
         {
             var flushSuit = cards.GroupBy(c => c.Suit).First(g => g.Count() >= 5).Key;
-            var flush5 = cards.Where(c => c.Suit == flushSuit)
-                            .OrderByDescending(c => c.Rank)
-                            .Take(5)
-                            .Select(c => (int)c.Rank)
-                            .ToList();
+            var flushCards = cards.Where(c => c.Suit == flushSuit)
+                                .OrderByDescending(c => c.Rank)
+                                .Take(5)
+                                .ToList();
 
             return new HandResult
             {
                 Name = "Flush",
                 Strength = GetHandStrength("Flush"),
-                Kickers = flush5
+                Kickers = flushCards.Select(c => (int)c.Rank).ToList()
             };
         }
+
 
         // Straight
         if (IsStraight(cards))
@@ -1061,6 +1083,6 @@ class Program
         Console.ReadLine();
     }
 }
-
+*/
     
 
