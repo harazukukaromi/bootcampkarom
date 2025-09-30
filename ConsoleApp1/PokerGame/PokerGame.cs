@@ -151,25 +151,6 @@ public class HumanPlayer : IPlayer
         Name = name;
         Balance = initialChips;
     }
-    private void NormalizeChips(List<Chip> chips)
-    {
-        if (chips == null) return;
-        while (chips.Count(c => c.Type == ChipType.White) >= 5)
-        {
-            for (int i = 0; i < 5; i++) chips.Remove(chips.First(c => c.Type == ChipType.White));
-            chips.Add(new Chip(ChipType.Red));
-        }
-        while (chips.Count(c => c.Type == ChipType.Red) >= 2)
-        {
-            for (int i = 0; i < 2; i++) chips.Remove(chips.First(c => c.Type == ChipType.Red));
-            chips.Add(new Chip(ChipType.Green));
-        }
-        while (chips.Count(c => c.Type == ChipType.Green) >= 10)
-        {
-            for (int i = 0; i < 10; i++) chips.Remove(chips.First(c => c.Type == ChipType.Green));
-            chips.Add(new Chip(ChipType.Black));
-        }
-    }
 }
 public class AIPlayer : IPlayer
 {
@@ -185,25 +166,6 @@ public class AIPlayer : IPlayer
         Name = name;
         Balance = initialChips;
 
-    }
-    private void NormalizeChips(List<Chip> chips)
-    {
-        if (chips == null) return;
-        while (chips.Count(c => c.Type == ChipType.White) >= 5)
-        {
-            for (int i = 0; i < 5; i++) chips.Remove(chips.First(c => c.Type == ChipType.White));
-            chips.Add(new Chip(ChipType.Red));
-        }
-        while (chips.Count(c => c.Type == ChipType.Red) >= 2)
-        {
-            for (int i = 0; i < 2; i++) chips.Remove(chips.First(c => c.Type == ChipType.Red));
-            chips.Add(new Chip(ChipType.Green));
-        }
-        while (chips.Count(c => c.Type == ChipType.Green) >= 10)
-        {
-            for (int i = 0; i < 10; i++) chips.Remove(chips.First(c => c.Type == ChipType.Green));
-            chips.Add(new Chip(ChipType.Black));
-        }
     }
 }
 
@@ -276,7 +238,7 @@ public class PokerGame
         {
             Console.WriteLine("\n=== Round Baru Dimulai ===");
             ResetDeck();
-            ResetRound();
+            ResetForNewRound();
             RotateBlinds();   // geser blinds hanya sekali di sini
             PostBlinds();     // baru kemudian pasang blind
             DealCards();
@@ -319,7 +281,6 @@ public class PokerGame
             }
         }
     }
-
     
     private void ResetRound()
     {
@@ -331,7 +292,6 @@ public class PokerGame
             p.CurrentBet = 0;
             p.Hand.Cards.Clear();
         }
-        RotateBlinds();
         Console.WriteLine("Round baru dimulai.");
     }
 
@@ -409,8 +369,6 @@ public class PokerGame
         UpdatePlayerHandStates("Pre-Flop");
     }
 
-
-
     private void DealCommunityCards(int count)
     {
         Console.WriteLine($"\n-- Dealing {count} community card(s) --");
@@ -444,42 +402,68 @@ public class PokerGame
     private void PostBlinds()
     {
         if (_players.Count < 2) return;
+
         var sb = _players[_smallBlindIndex % _players.Count];
         var bb = _players[_bigBlindIndex % _players.Count];
 
         int smallAmt = _bigBlind / 2;
+        // pastikan kelipatan 10
+        smallAmt = (int)(Math.Round(smallAmt / 10.0) * 10);
 
-        sb.Balance -= smallAmt;
+        // ambil chip dari SB dan taruh ke pot
+        var sbChips = RemoveChipsFromPlayer(sb, smallAmt);
+        AddChipsListToPot(sbChips);
         sb.CurrentBet = smallAmt;
-        _table.Pot.Add(new Chip(ChipType.White)); // opsional: chip visual
         Console.WriteLine($"{sb.Name} posts small blind {smallAmt} (Balance: {sb.Balance})");
 
-        bb.Balance -= _bigBlind;
+        // ambil chip dari BB dan taruh ke pot
+        var bbChips = RemoveChipsFromPlayer(bb, _bigBlind);
+        AddChipsListToPot(bbChips);
         bb.CurrentBet = _bigBlind;
-        _table.Pot.Add(new Chip(ChipType.Red)); // opsional: chip visual
         Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance})");
 
         _currentBet = _bigBlind;
     }
 
+
+
     private void BettingRounds()
     {
         Console.WriteLine("\n-- Betting Round --");
 
-        foreach (var p in _players)
+        // Tentukan stage berdasarkan jumlah community cards
+        bool isPreFlop = _communityCards.Count == 0;
+
+        int startIndex;
+        if (isPreFlop)
         {
-            if (p.IsFolded || p.Balance == 0) continue; // skip fold atau all-in
+            // pre-flop: mulai dari kiri Big Blind
+            startIndex = (_bigBlindIndex + 1) % _players.Count;
+        }
+        else
+        {
+            // post-flop: mulai dari kiri Dealer/Button
+            int dealerIndex = (_smallBlindIndex - 1 + _players.Count) % _players.Count;
+            startIndex = (dealerIndex + 1) % _players.Count;
+        }
+
+        int playersToAct = _players.Count;
+        for (int i = 0; i < playersToAct; i++)
+        {
+            int idx = (startIndex + i) % _players.Count;
+            var p = _players[idx];
+
+            if (p.IsFolded || p.Balance == 0) continue; // skip fold/all-in
 
             PlayerAction action = MakeDecision(p, _currentBet, _minRaise);
             ProcessPlayerTurn(p, action);
         }
 
-        // setelah semua giliran
+        // Setelah semua action selesai → evaluasi kondisi
         var activePlayers = _players.Where(p => !p.IsFolded).ToList();
 
         if (activePlayers.Count == 1)
         {
-            // hanya 1 pemain tersisa → menang otomatis
             var winner = activePlayers.First();
             Console.WriteLine($"{winner.Name} menang otomatis (semua lawan fold).");
             var potChips = _table.Pot.ToList();
@@ -488,7 +472,6 @@ public class PokerGame
             return;
         }
 
-        // kalau semua sudah All-In → showdown langsung
         if (activePlayers.All(p => p.Balance == 0))
         {
             Console.WriteLine("Semua pemain All-In → langsung Showdown!");
@@ -496,7 +479,6 @@ public class PokerGame
             DistributePot();
         }
     }
-
 
     private void ProcessPlayerTurn(IPlayer player, PlayerAction action)
     {
@@ -521,7 +503,13 @@ public class PokerGame
                 else
                 {
                     int callAmount = Math.Min(toCall, player.Balance);
-                    player.Balance -= callAmount;
+
+                    // pastikan kelipatan 10
+                    callAmount = (int)(Math.Round(callAmount / 10.0) * 10);
+
+                    var chips = RemoveChipsFromPlayer(player, callAmount);
+                    AddChipsListToPot(chips);
+
                     player.CurrentBet += callAmount;
                     Console.WriteLine($"{player.Name} calls {callAmount} (Balance: {player.Balance})");
                 }
@@ -541,27 +529,37 @@ public class PokerGame
                 if (player is HumanPlayer)
                 {
                     Console.WriteLine($"{player.Name}, masukkan jumlah Raise (minimal {toCall + minRaise}, maksimal {maxRaise}):");
-                    if (!int.TryParse(Console.ReadLine(), out raiseAmount) ||
-                        raiseAmount < toCall + minRaise || raiseAmount > maxRaise)
-                    {
-                        raiseAmount = toCall + minRaise; // default minimal
-                    }
+                    if (!int.TryParse(Console.ReadLine(), out raiseAmount))
+                        raiseAmount = toCall + minRaise;
+
+                    raiseAmount = Math.Max(toCall + minRaise, Math.Min(raiseAmount, maxRaise));
                 }
                 else
                 {
-                    // AI pilih random di range valid
                     raiseAmount = _random.Next(toCall + minRaise, maxRaise + 1);
                 }
 
-                player.Balance -= raiseAmount;
+                // bulatkan ke kelipatan 10
+                raiseAmount = (int)(Math.Round(raiseAmount / 10.0) * 10);
+
+                var raiseChips = RemoveChipsFromPlayer(player, raiseAmount);
+                AddChipsListToPot(raiseChips);
+
                 player.CurrentBet += raiseAmount;
                 _currentBet = player.CurrentBet;
+
                 Console.WriteLine($"{player.Name} raises to {_currentBet} (Balance: {player.Balance})");
                 break;
 
             case PlayerAction.AllIn:
                 int allInAmount = player.Balance;
-                player.Balance = 0;
+
+                // bulatkan ke kelipatan 10
+                allInAmount = (int)(Math.Round(allInAmount / 10.0) * 10);
+
+                var allInChips = RemoveChipsFromPlayer(player, allInAmount);
+                AddChipsListToPot(allInChips);
+
                 player.CurrentBet += allInAmount;
                 if (player.CurrentBet > _currentBet)
                     _currentBet = player.CurrentBet;
@@ -570,6 +568,7 @@ public class PokerGame
                 break;
         }
     }
+
 
 
 
@@ -942,10 +941,6 @@ public class PokerGame
                 _bigBlindIndex %= _table.players.Count;
             }
         }
-        else
-        {
-            Console.WriteLine($"Player {player.Name} tidak ditemukan di meja.");
-        }
 
         // Cek kalau semua human sudah habis
         if (!_table.players.Any(p => p is HumanPlayer && p.Balance > 0))
@@ -958,7 +953,26 @@ public class PokerGame
     public List<IPlayer> GetPlayers() => _table.players;
     public void AddCard(ICard card) => _communityCards.Add(card);
     public void ClearCard() => _communityCards.Clear();
-    public void ResetForNewRound() => ResetRound();
+    private void ResetForNewRound()
+    {
+        // singkirkan pemain dengan balance 0 sebelum ronde dimulai
+        var eliminated = _players.Where(p => p.Balance <= 0).ToList();
+        foreach (var p in eliminated)
+            RemovePlayer(p);
+
+        _communityCards.Clear();
+        _currentBet = 0;
+
+        foreach (var p in _players)
+        {
+            p.IsFolded = false;
+            p.CurrentBet = 0;
+            p.Hand.Cards.Clear();
+        }
+
+        Console.WriteLine("Round baru dimulai.");
+    }
+
     public bool PlaceBet(int amount)
     {
         if (amount < _currentBet) return false;
@@ -993,7 +1007,7 @@ public class PokerGame
         }
     }
     public IDeck GotDeck() => _table.Deck;
-    public int GetPot() => 1000;
+    public int GetPot() => 20;
     public void AddToPot(int amount)
     {
         while (amount >= (int)ChipType.Black)
@@ -1091,24 +1105,26 @@ public class PokerGame
         }
     }
 
-    // tambahan kelas untuk sementara
     private List<Chip> RemoveChipsFromPlayer(IPlayer player, int amount)
     {
         var removed = new List<Chip>();
-        int need = amount;
-        // try taking large chips first for efficiency
-        var ordering = new[] { ChipType.Black, ChipType.Green, ChipType.Red, ChipType.White };
-        foreach (var type in ordering)
-        {
-            while (need > 0 && player.Chips.Any(c => c.Type == type))
-            {
-                var chip = player.Chips.First(c => c.Type == type);
-                removed.Add(chip);
-                player.Chips.Remove(chip);
-                need -= (int)chip.Type;
-            }
-        }
-        NormalizeChips(player.Chips);
+
+        // ambil maksimal sesuai balance pemain
+        int toTake = Math.Min(amount, player.Balance);
+        if (toTake <= 0) return removed;
+
+        // kurangi balance langsung
+        player.Balance -= toTake;
+        if (player.Balance < 0) player.Balance = 0;
+
+        // buat chips yang mewakili jumlah yang diambil (greedy: terbesar dulu)
+        int remaining = toTake;
+        while (remaining >= (int)ChipType.Black) { removed.Add(new Chip(ChipType.Black)); remaining -= (int)ChipType.Black; }
+        while (remaining >= (int)ChipType.Green) { removed.Add(new Chip(ChipType.Green)); remaining -= (int)ChipType.Green; }
+        while (remaining >= (int)ChipType.Red)   { removed.Add(new Chip(ChipType.Red));   remaining -= (int)ChipType.Red; }
+        while (remaining >= (int)ChipType.White) { removed.Add(new Chip(ChipType.White)); remaining -= (int)ChipType.White; }
+
+        // Jika ada sisa negatif (seharusnya tidak), kita abaikan — but toTake sudah dikalkulasi.
         return removed;
     }
 
@@ -1194,6 +1210,13 @@ public class PokerGame
         Console.WriteLine($"Pot value: {GetPotValue()}");
         ShowBoard();
         Console.WriteLine("===================\n");
+
+        // Kick out players with 0 balance
+        var eliminated = _players.Where(p => p.Balance <= 0).ToList();
+        foreach (var p in eliminated)
+        {
+            RemovePlayer(p); //untuk bot keluar dari meja
+        }
     }
 }
 
