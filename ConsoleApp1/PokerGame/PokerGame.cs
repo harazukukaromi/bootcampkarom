@@ -638,14 +638,14 @@ public class PokerGame
         //untuk dealer kedepannya
     }
 
-    public class HandResult
+   public class HandResult
     {
         public string Name { get; set; } = "High Card";
         public int Strength { get; set; } = 1;
-        public List<int> Kickers { get; set; } = new(); 
+        public List<ICard> Kickers { get; set; } = new();
 
-        // helper: konversi ke nama kartu
-        public string KickersAsString => string.Join(", ", Kickers.Select(v => ((Rank)v).ToString()));
+        public string KickersAsString => string.Join(", ",
+            Kickers.Select(c => $"{c.Rank} of {c.Suit}"));
     }
 
     private HandResult EvaluateBestHand(List<ICard> cards)
@@ -661,12 +661,10 @@ public class PokerGame
         }
         return best;
     }
+
     private HandResult EvaluateFiveCardHand(List<ICard> cards)
     {
-        // Urutkan kartu (tinggi ke rendah)
         var sorted = cards.OrderByDescending(c => c.Rank).ToList();
-
-        // Kelompokkan rank
         var groups = cards.GroupBy(c => c.Rank)
                         .OrderByDescending(g => g.Count())
                         .ThenByDescending(g => g.Key)
@@ -674,146 +672,82 @@ public class PokerGame
 
         // Royal Flush
         if (IsRoyalFlush(cards))
-        {
-            return new HandResult
-            {
-                Name = "Royal Flush",
-                Strength = GetHandStrength("Royal Flush"),
-                Kickers = new List<int> { (int)Rank.Ace, (int)Rank.King, (int)Rank.Queen, (int)Rank.Jack, (int)Rank.Ten }
-            };
-        }
+            return new HandResult { Name = "Royal Flush", Strength = GetHandStrength("Royal Flush"), Kickers = sorted };
 
         // Straight Flush
         if (IsStraightFlush(cards))
-        {
-            var straightFlush = sorted.Select(c => (int)c.Rank).OrderByDescending(r => r).Take(5).ToList();
-            return new HandResult
-            {
-                Name = "Straight Flush",
-                Strength = GetHandStrength("Straight Flush"),
-                Kickers = straightFlush
-            };
-        }
+            return new HandResult { Name = "Straight Flush", Strength = GetHandStrength("Straight Flush"), Kickers = sorted };
 
         // Four of a Kind
         if (IsFourOfAKind(cards))
         {
-            var quad = groups.First(g => g.Count() == 4).Key;
-            var kicker = groups.First(g => g.Count() == 1).Key;
-            return new HandResult
-            {
-                Name = "Four of a Kind",
-                Strength = GetHandStrength("Four of a Kind"),
-                Kickers = Enumerable.Repeat((int)quad, 4).Concat(new[] { (int)kicker }).ToList()
-            };
+            var quad = groups.First(g => g.Count() == 4).ToList();
+            var kicker = cards.Except(quad).OrderByDescending(c => c.Rank).First();
+            return new HandResult { Name = "Four of a Kind", Strength = GetHandStrength("Four of a Kind"), Kickers = quad.Concat(new[] { kicker }).ToList() };
         }
 
         // Full House
         if (IsFullHouse(cards))
         {
-            var three = groups.First(g => g.Count() == 3).Key;
-            var pair = groups.First(g => g.Count() == 2).Key;
-            return new HandResult
-            {
-                Name = "Full House",
-                Strength = GetHandStrength("Full House"),
-                Kickers = Enumerable.Repeat((int)three, 3).Concat(Enumerable.Repeat((int)pair, 2)).ToList()
-            };
+            var three = groups.First(g => g.Count() == 3).ToList();
+            var pair = groups.First(g => g.Count() == 2).ToList();
+            return new HandResult { Name = "Full House", Strength = GetHandStrength("Full House"), Kickers = three.Concat(pair).ToList() };
         }
 
         // Flush
         if (IsFlush(cards))
         {
             var flushSuit = cards.GroupBy(c => c.Suit).First(g => g.Count() >= 5).Key;
-            var flushCards = cards.Where(c => c.Suit == flushSuit)
-                                .OrderByDescending(c => c.Rank)
-                                .Take(5)
-                                .ToList();
-
-            return new HandResult
-            {
-                Name = "Flush",
-                Strength = GetHandStrength("Flush"),
-                Kickers = flushCards.Select(c => (int)c.Rank).ToList()
-            };
+            var flushCards = cards.Where(c => c.Suit == flushSuit).OrderByDescending(c => c.Rank).Take(5).ToList();
+            return new HandResult { Name = "Flush", Strength = GetHandStrength("Flush"), Kickers = flushCards };
         }
-
 
         // Straight
         if (IsStraight(cards))
         {
-            var ranks = cards.Select(c => (int)c.Rank).Distinct().ToList();
-            if (ranks.Contains((int)Rank.Ace)) ranks.Add(1); // Ace low
-            ranks = ranks.OrderByDescending(r => r).ToList();
-
-            List<int> straight5 = new();
-            for (int i = 0; i < ranks.Count - 4; i++)
+            var distinctRanks = cards.GroupBy(c => c.Rank).Select(g => g.First()).OrderByDescending(c => c.Rank).ToList();
+            var straightCards = new List<ICard>();
+            for (int i = 0; i < distinctRanks.Count - 4; i++)
             {
-                if (ranks[i] - ranks[i + 4] == 4)
+                var window = distinctRanks.Skip(i).Take(5).ToList();
+                if (window.Max(c => (int)c.Rank) - window.Min(c => (int)c.Rank) == 4)
                 {
-                    straight5 = ranks.Skip(i).Take(5).ToList();
+                    straightCards = window.OrderByDescending(c => c.Rank).ToList();
                     break;
                 }
             }
+            if (straightCards.Count == 0)
+                straightCards = distinctRanks.Take(5).ToList();
 
-            return new HandResult
-            {
-                Name = "Straight",
-                Strength = GetHandStrength("Straight"),
-                Kickers = straight5
-            };
+            return new HandResult { Name = "Straight", Strength = GetHandStrength("Straight"), Kickers = straightCards };
         }
 
         // Three of a Kind
         if (IsThreeOfAKind(cards))
         {
-            var trips = groups.First(g => g.Count() == 3).Key;
-            var kickers = groups.Where(g => g.Count() == 1).Select(g => g.Key).OrderByDescending(r => r).Take(2).ToList();
-            return new HandResult
-            {
-                Name = "Three of a Kind",
-                Strength = GetHandStrength("Three of a Kind"),
-                Kickers = Enumerable.Repeat((int)trips, 3).Concat(kickers.Select(k => (int)k)).ToList()
-            };
+            var trips = groups.First(g => g.Count() == 3).ToList();
+            var kickers = cards.Except(trips).OrderByDescending(c => c.Rank).Take(2).ToList();
+            return new HandResult { Name = "Three of a Kind", Strength = GetHandStrength("Three of a Kind"), Kickers = trips.Concat(kickers).ToList() };
         }
 
         // Two Pair
         if (IsTwoPair(cards))
         {
-            var pairs = groups.Where(g => g.Count() == 2).Select(g => g.Key).OrderByDescending(r => r).Take(2).ToList();
-            var kicker = groups.FirstOrDefault(g => g.Count() == 1)?.Key ?? Rank.Two;
-            return new HandResult
-            {
-                Name = "Two Pair",
-                Strength = GetHandStrength("Two Pair"),
-                Kickers = Enumerable.Repeat((int)pairs[0], 2)
-                        .Concat(Enumerable.Repeat((int)pairs[1], 2))
-                        .Concat(new[] { (int)kicker })
-                        .ToList()
-            };
+            var pairs = groups.Where(g => g.Count() == 2).OrderByDescending(g => g.Key).Take(2).SelectMany(g => g).ToList();
+            var kicker = cards.Except(pairs).OrderByDescending(c => c.Rank).First();
+            return new HandResult { Name = "Two Pair", Strength = GetHandStrength("Two Pair"), Kickers = pairs.Concat(new[] { kicker }).ToList() };
         }
 
         // One Pair
         if (IsOnePair(cards))
         {
-            var pair = groups.First(g => g.Count() == 2).Key;
-            var kickers = groups.Where(g => g.Count() == 1).Select(g => g.Key).OrderByDescending(r => r).Take(3).ToList();
-            return new HandResult
-            {
-                Name = "One Pair",
-                Strength = GetHandStrength("One Pair"),
-                Kickers = Enumerable.Repeat((int)pair, 2).Concat(kickers.Select(k => (int)k)).ToList()
-            };
+            var pair = groups.First(g => g.Count() == 2).ToList();
+            var kickers = cards.Except(pair).OrderByDescending(c => c.Rank).Take(3).ToList();
+            return new HandResult { Name = "One Pair", Strength = GetHandStrength("One Pair"), Kickers = pair.Concat(kickers).ToList() };
         }
 
         // High Card
-        var high5 = sorted.Take(5).Select(c => (int)c.Rank).ToList();
-        return new HandResult
-        {
-            Name = $"High Card {((Rank)high5.First()).ToString()}",
-            Strength = GetHandStrength("High Card"),
-            Kickers = high5
-        };
+        return new HandResult { Name = $"High Card {sorted.First().Rank}", Strength = GetHandStrength("High Card"), Kickers = sorted.Take(5).ToList() };
     }
 
     public IEnumerable<List<ICard>> GetCombinations(List<ICard> cards, int k)
@@ -837,7 +771,7 @@ public class PokerGame
     {
         var allCards = handCards.Concat(communityCards).ToList();
 
-        // === PRE-FLOP HAND EVALUATION (hanya 2 hole cards, belum ada board) ===
+        // PRE-FLOP
         if (communityCards.Count == 0 && handCards.Count == 2)
         {
             var c1 = handCards[0];
@@ -849,7 +783,7 @@ public class PokerGame
                 {
                     Name = "One Pair",
                     Strength = GetHandStrength("One Pair"),
-                    Kickers = new List<int> { (int)c1.Rank, (int)c2.Rank }
+                    Kickers = new List<ICard> { c1, c2 }
                 };
             }
             else
@@ -859,12 +793,12 @@ public class PokerGame
                 {
                     Name = $"High Card {sorted.First().Rank}",
                     Strength = GetHandStrength("High Card"),
-                    Kickers = sorted.Select(c => (int)c.Rank).ToList()
+                    Kickers = sorted
                 };
             }
         }
 
-        // === FLOP / TURN / RIVER (gunakan evaluasi normal 5+ kartu) ===
+        // FLOP / TURN / RIVER
         return EvaluateBestHand(allCards);
     }
 
@@ -883,7 +817,7 @@ public class PokerGame
         "High Card" => 1,
         _ => 1
     };
-    private int CompareKickers(List<int> k1, List<int> k2)
+    private int CompareKickers(List<ICard> k1, List<ICard> k2)
     {
         if (k1 == null && k2 == null) return 0;
         if (k1 == null) return -1;
@@ -892,14 +826,15 @@ public class PokerGame
         int count = Math.Max(k1.Count, k2.Count);
         for (int i = 0; i < count; i++)
         {
-            int v1 = i < k1.Count ? k1[i] : 0;
-            int v2 = i < k2.Count ? k2[i] : 0;
+            int v1 = i < k1.Count ? (int)k1[i].Rank : 0;
+            int v2 = i < k2.Count ? (int)k2[i].Rank : 0;
 
             if (v1 > v2) return 1;
             if (v1 < v2) return -1;
         }
         return 0;
     }
+
 
 
 
