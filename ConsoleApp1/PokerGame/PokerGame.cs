@@ -272,20 +272,18 @@ public class PokerGame
 
         // Flop
         DealCommunityCards(3);
-        UpdatePlayerHandStates("Flop");
         BettingRounds();
         if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); return; }
 
         // Turn
         DealCommunityCards(1);
-        UpdatePlayerHandStates("Turn");
         BettingRounds();
         if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); return; }
 
         // River
         DealCommunityCards(1);
-        UpdatePlayerHandStates("River");
         BettingRounds();
+
 
         // Normal showdown
         Showdown();
