@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 
 public class MyClass
@@ -58,3 +58,4 @@ class Program
         MyClass.Generate(n);
     }
 }
+*/

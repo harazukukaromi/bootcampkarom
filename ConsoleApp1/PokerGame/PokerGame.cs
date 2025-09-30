@@ -1,4 +1,3 @@
-/*
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -249,7 +248,7 @@ public class PokerGame
         _smallBlindIndex = 0;
         _bigBlindIndex = 1;
     }
-     public void StartGame()
+    public void StartGame()
     {
         Console.WriteLine("=== Game Start ===");
         ResetDeck();
@@ -273,22 +272,57 @@ public class PokerGame
 
         // Flop
         DealCommunityCards(3);
+        UpdatePlayerHandStates("Flop");
         BettingRounds();
         if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); return; }
 
         // Turn
         DealCommunityCards(1);
+        UpdatePlayerHandStates("Turn");
         BettingRounds();
         if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); return; }
 
         // River
         DealCommunityCards(1);
+        UpdatePlayerHandStates("River");
         BettingRounds();
 
         // Normal showdown
         Showdown();
         DistributePot();
     }
+    private string GetStageFromCommunityCount()
+    {
+        return _communityCards.Count switch
+        {
+            0 => "Pre-Flop",
+            3 => "Flop",
+            4 => "Turn",
+            5 => "River",
+            _ => $"Stage({_communityCards.Count})"
+        };
+    }
+
+    private void UpdatePlayerHandStates(string stage)
+    {
+        Console.WriteLine($"\n== Evaluasi Hand ({stage}) ==");
+
+        foreach (var p in _players)
+        {
+            if (p.IsFolded) continue;
+
+            var playerCards = p.Hand.Cards.ToList();
+            var result = EvaluateHand(playerCards, _communityCards);
+
+            string hole = string.Join(", ", playerCards.Select(c => $"{c.Rank} of {c.Suit}"));
+            string kickerNames = !string.IsNullOrEmpty(result.KickersAsString) ? result.KickersAsString : "-";
+
+            Console.WriteLine($"{p.Name}: {result.Name} (Strength {result.Strength})");
+            Console.WriteLine($"   Hole Cards : {hole}");
+            Console.WriteLine($"   Kickers    : {kickerNames}");
+        }
+    }
+
 
     private bool AllPlayersAllInOrFolded()
     {
@@ -328,6 +362,7 @@ public class PokerGame
         }
         Console.WriteLine("Round baru dimulai.");
     }
+
     private void DealCards()
     {
         Console.WriteLine("\n-- Dealing hole cards --");
@@ -337,16 +372,37 @@ public class PokerGame
             var c2 = DealCardDeck();
             ((Hand)p.Hand).AddCard(c1);
             ((Hand)p.Hand).AddCard(c2);
-            Console.WriteLine($"{p.Name} gets: {c1.Rank} of {c1.Suit}, {c2.Rank} of {c2.Suit}");
+
+            string holeCards = $"{c1.Rank} of {c1.Suit}, {c2.Rank} of {c2.Suit}";
+            Console.WriteLine($"{p.Name} gets: {holeCards}");
         }
+
+        // tampilkan ringkasan kondisi Pre-Flop (sekali saja)
+        UpdatePlayerHandStates("Pre-Flop");
     }
+
+
+
     private void DealCommunityCards(int count)
     {
         Console.WriteLine($"\n-- Dealing {count} community card(s) --");
         for (int i = 0; i < count; i++)
             _communityCards.Add(DealCardDeck());
+
         ShowBoard();
+
+        string stage = _communityCards.Count switch
+        {
+            3 => "Flop",
+            4 => "Turn",
+            5 => "River",
+            _ => "Board"
+        };
+
+        UpdatePlayerHandStates(stage);
     }
+
+
     private void ShowBoard()//tambahan kelas untuk menampilkan class untuk show card
     {
         Console.WriteLine("Board:");
@@ -506,9 +562,7 @@ public class PokerGame
             string holeCards = string.Join(", ", playerCards.Select(c => $"{c.Rank} of {c.Suit}"));
 
             // tampilkan kicker (aman walau kosong)
-            string kickerNames = result.Kickers != null && result.Kickers.Count > 0
-                ? string.Join(", ", result.Kickers.Select(k => ((Rank)k).ToString()))
-                : "-";
+            string kickerNames = !string.IsNullOrEmpty(result.KickersAsString) ? result.KickersAsString : "-";
 
             Console.WriteLine($"{p.Name}: {result.Name} (Strength: {result.Strength})");
             Console.WriteLine($"   Hole Cards : {holeCards}");
@@ -784,8 +838,39 @@ public class PokerGame
     public HandResult EvaluateHand(List<ICard> handCards, List<ICard> communityCards)
     {
         var allCards = handCards.Concat(communityCards).ToList();
+
+        // === PRE-FLOP HAND EVALUATION (hanya 2 hole cards, belum ada board) ===
+        if (communityCards.Count == 0 && handCards.Count == 2)
+        {
+            var c1 = handCards[0];
+            var c2 = handCards[1];
+
+            if (c1.Rank == c2.Rank)
+            {
+                return new HandResult
+                {
+                    Name = "One Pair",
+                    Strength = GetHandStrength("One Pair"),
+                    Kickers = new List<int> { (int)c1.Rank, (int)c2.Rank }
+                };
+            }
+            else
+            {
+                var sorted = handCards.OrderByDescending(c => c.Rank).ToList();
+                return new HandResult
+                {
+                    Name = $"High Card {sorted.First().Rank}",
+                    Strength = GetHandStrength("High Card"),
+                    Kickers = sorted.Select(c => (int)c.Rank).ToList()
+                };
+            }
+        }
+
+        // === FLOP / TURN / RIVER (gunakan evaluasi normal 5+ kartu) ===
         return EvaluateBestHand(allCards);
     }
+
+
     public int GetHandStrength(string hand) => hand switch
     {
         "Royal Flush" => 10,
@@ -1150,6 +1235,5 @@ class Program
         Console.ReadLine();
     }
 }
-*/
     
 
