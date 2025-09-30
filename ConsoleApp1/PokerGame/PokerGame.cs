@@ -229,7 +229,6 @@ public class PokerGame
     private int _smallBlindIndex;
     private int _bigBlindIndex;
 
-    // helper collections
     private readonly List<IPlayer> _players = new();
 
     public Action<GameEventType>? OnGameEvent;
@@ -251,8 +250,6 @@ public class PokerGame
     public void StartGame()
     {
         Console.WriteLine("=== Game Start ===");
-        ResetDeck();
-        _communityCards.Clear();
         _players.Clear();
         _players.AddRange(_table.players);
 
@@ -262,33 +259,82 @@ public class PokerGame
             return;
         }
 
-        ResetRound();
-        PostBlinds();
-        DealCards();
-
-        // Pre-flop betting
-        BettingRounds();
-        if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); return; }
-
-        // Flop
-        DealCommunityCards(3);
-        BettingRounds();
-        if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); return; }
-
-        // Turn
-        DealCommunityCards(1);
-        BettingRounds();
-        if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); return; }
-
-        // River
-        DealCommunityCards(1);
-        BettingRounds();
-
-
-        // Normal showdown
-        Showdown();
-        DistributePot();
+        PlayRound(); // jalankan loop ronde
     }
+
+    private void RotateBlinds()
+    {
+        if (_players.Count < 2) return;
+
+        _smallBlindIndex = (_smallBlindIndex + 1) % _players.Count;
+        _bigBlindIndex = (_smallBlindIndex + 1) % _players.Count;
+    }
+    public void PlayRound()
+    {
+        bool running = true;
+        while (running)
+        {
+            Console.WriteLine("\n=== Round Baru Dimulai ===");
+            ResetDeck();
+            ResetRound();
+            RotateBlinds();   // geser blinds hanya sekali di sini
+            PostBlinds();     // baru kemudian pasang blind
+            DealCards();
+
+            // Jalankan fase betting + kartu community
+            BettingRounds();
+            if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); goto EndRound; }
+
+            DealCommunityCards(3);
+            BettingRounds();
+            if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); goto EndRound; }
+
+            DealCommunityCards(1);
+            BettingRounds();
+            if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); goto EndRound; }
+
+            DealCommunityCards(1);
+            BettingRounds();
+
+            Showdown();
+            DistributePot();
+
+        EndRound:
+            Console.WriteLine("\n=== Ronde selesai ===");
+            ShowTableState();
+
+            string choice;
+            while (true)
+            {
+                Console.Write("Lanjut main? (1 = Ya, 2 = Keluar): ");
+                choice = Console.ReadLine();
+                if (choice == "1" || choice == "2") break;
+                Console.WriteLine("Input tidak valid. Pilih 1 atau 2.");
+            }
+
+            if (choice == "2")
+            {
+                Console.WriteLine("Game berakhir. Terima kasih sudah bermain!");
+                running = false;
+            }
+        }
+    }
+
+    
+    private void ResetRound()
+    {
+        _communityCards.Clear();
+        _currentBet = 0;
+        foreach (var p in _players)
+        {
+            p.IsFolded = false;
+            p.CurrentBet = 0;
+            p.Hand.Cards.Clear();
+        }
+        RotateBlinds();
+        Console.WriteLine("Round baru dimulai.");
+    }
+
     private string GetStageFromCommunityCount()
     {
         return _communityCards.Count switch
@@ -343,23 +389,7 @@ public class PokerGame
         DistributePot();
     }
 
-    private void PlayRound()
-    {
-        Console.WriteLine("Game Dimulai"); //game mulai for start every round   
-    }
     
-    private void ResetRound()
-    {
-        _communityCards.Clear();
-        _currentBet = 0;
-        foreach (var p in _players)
-        {
-            p.IsFolded = false;
-            p.CurrentBet = 0;
-            p.Hand.Cards.Clear();
-        }
-        Console.WriteLine("Round baru dimulai.");
-    }
 
     private void DealCards()
     {
@@ -834,10 +864,6 @@ public class PokerGame
         }
         return 0;
     }
-
-
-
-
     private bool IsRoyalFlush(List<ICard> cards) =>
         IsStraightFlush(cards) && cards.Any(c => c.Rank == Rank.Ace) && cards.Any(c => c.Rank == Rank.King);
     private bool IsStraightFlush(List<ICard> cards) =>
@@ -882,7 +908,7 @@ public class PokerGame
         cards.GroupBy(c => c.Rank).Count(g => g.Count() == 2) >= 2;
     private bool IsOnePair(List<ICard> cards) =>
         cards.GroupBy(c => c.Rank).Any(g => g.Count() == 2);
-    public void AddPlayer(IPlayer player)
+    public void AddPlayer(string name, bool isAI)
     {
         if (_table.players.Count >= 4)
         {
@@ -890,26 +916,45 @@ public class PokerGame
             return;
         }
 
-        // cek apakah player sudah ada (berdasarkan referensi atau nama)
-        if (_table.players.Any(p => p == player || p.Name == player.Name))
+        if (_table.players.Any(p => p.Name == name))
         {
-            Console.WriteLine($"Player {player.Name} sudah ada di meja.");
+            Console.WriteLine($"Player {name} sudah ada di meja.");
             return;
         }
+
+        IPlayer player = isAI ? new AIPlayer(name, 1000) : new HumanPlayer(name, 1000);
+
         _table.players.Add(player);
         Console.WriteLine($"{player.Name} bergabung ke meja. Total players: {_table.players.Count}/4");
     }
-    public void RemovePlayer(IPlayer player)
+
+
+    public void RemovePlayer(IPlayer player)    
     {
         if (_table.players.Remove(player))
         {
             Console.WriteLine($"{player.Name} keluar dari meja. Total players: {_table.players.Count}/4");
+
+            // Sesuaikan index blind setelah remove
+            if (_table.players.Count > 0)
+            {
+                _smallBlindIndex %= _table.players.Count;
+                _bigBlindIndex %= _table.players.Count;
+            }
         }
         else
         {
             Console.WriteLine($"Player {player.Name} tidak ditemukan di meja.");
         }
+
+        // Cek kalau semua human sudah habis
+        if (!_table.players.Any(p => p is HumanPlayer && p.Balance > 0))
+        {
+            Console.WriteLine("Semua pemain human sudah kehabisan chip. Game berakhir!");
+            Environment.Exit(0);
+        }
     }
+
     public List<IPlayer> GetPlayers() => _table.players;
     public void AddCard(ICard card) => _communityCards.Add(card);
     public void ClearCard() => _communityCards.Clear();
@@ -951,7 +996,6 @@ public class PokerGame
     public int GetPot() => 1000;
     public void AddToPot(int amount)
     {
-        // convert amount to chips greedy and add
         while (amount >= (int)ChipType.Black)
         {
             _table.Pot.Add(new Chip(ChipType.Black));
@@ -1005,8 +1049,16 @@ public class PokerGame
         // Human
         if (toCall <= 0)
         {
-            Console.WriteLine($"{player.Name}, pilih aksi: [1] Check, [2] Raise, [3] AllIn, [4] Fold");
-            string input = Console.ReadLine();
+            string input;
+            while (true)
+            {
+                Console.WriteLine($"{player.Name}, pilih aksi: [1] Check, [2] Raise, [3] AllIn, [4] Fold");
+                input = Console.ReadLine();
+                if (input == "1" || input == "2" || input == "3" || input == "4")
+                    break;
+                Console.WriteLine("Input tidak valid. Harus pilih 1, 2, 3, atau 4.");
+            }
+
             return input switch
             {
                 "1" => PlayerAction.Check,
@@ -1018,8 +1070,16 @@ public class PokerGame
         }
         else
         {
-            Console.WriteLine($"{player.Name}, ada bet {currentBet}. Pilih aksi: [1] Call, [2] Raise, [3] AllIn, [4] Fold");
-            string input = Console.ReadLine();
+            string input;
+            while (true)
+            {
+                Console.WriteLine($"{player.Name}, ada bet {currentBet}. Pilih aksi: [1] Call, [2] Raise, [3] AllIn, [4] Fold");
+                input = Console.ReadLine();
+                if (input == "1" || input == "2" || input == "3" || input == "4")
+                    break;
+                Console.WriteLine("Input tidak valid. Harus pilih 1, 2, 3, atau 4.");
+            }
+
             return input switch
             {
                 "1" => PlayerAction.Call,
@@ -1030,6 +1090,7 @@ public class PokerGame
             };
         }
     }
+
     // tambahan kelas untuk sementara
     private List<Chip> RemoveChipsFromPlayer(IPlayer player, int amount)
     {
@@ -1140,33 +1201,37 @@ class Program
 {
     static void Main(string[] args)
     {
-        // Buat deck & table
         IDeck deck = new Deck();
         Table table = new Table(deck);
+        PokerGame game = new PokerGame(table);
 
         Console.WriteLine("=== Texas Hold'em Poker ===");
 
-        // Tambahkan beberapa player (misal 2 human + 1 AI)
-        IPlayer p1 = new HumanPlayer("Alice", 1000);
-        IPlayer p2 = new HumanPlayer("Bob", 1000);
-        IPlayer p3 = new AIPlayer("CharlieBot", 1000);
+        // Player 1 selalu Human
+        Console.Write("Masukkan nickname untuk Player 1 (Human): ");
+        string humanName = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(humanName))
+            humanName = "Player1";
+        game.AddPlayer(humanName, false);
 
-        table.players.Add(p1);
-        table.players.Add(p2);
-        table.players.Add(p3);
+        // Player 2-4 otomatis Bot
+        for (int i = 2; i <= 4; i++)
+        {
+            string botName = $"Bot{i}";
+            game.AddPlayer(botName, true);
+        }
 
-        // Buat game
-        PokerGame game = new PokerGame(table);
-
-        // Mulai permainan
+        // Mulai game (di dalamnya akan ada loop PlayRound)
         game.StartGame();
 
         Console.WriteLine("\n=== Game Selesai ===");
-        game.ShowTableState();
-
-        Console.WriteLine("Tekan ENTER untuk keluar...");
-        Console.ReadLine();
     }
 }
+
+
+
+
+
+
     
 
