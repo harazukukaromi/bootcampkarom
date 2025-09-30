@@ -1201,6 +1201,13 @@ public class PokerGame
     // utility: display table state
     public void ShowTableState()
     {
+        // Kick out players with 0 balance dulu
+        var eliminated = _players.Where(p => p.Balance <= 0).ToList();
+        foreach (var p in eliminated)
+        {
+            RemovePlayer(p);
+        }
+
         Console.WriteLine("\n=== TABLE STATE ===");
         Console.WriteLine("Players:");
         foreach (var p in _players)
@@ -1210,14 +1217,8 @@ public class PokerGame
         Console.WriteLine($"Pot value: {GetPotValue()}");
         ShowBoard();
         Console.WriteLine("===================\n");
-
-        // Kick out players with 0 balance
-        var eliminated = _players.Where(p => p.Balance <= 0).ToList();
-        foreach (var p in eliminated)
-        {
-            RemovePlayer(p); //untuk bot keluar dari meja
-        }
     }
+
 }
 
 class Program
