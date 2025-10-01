@@ -491,15 +491,25 @@ public class PokerGame
         Console.WriteLine($"{sb.Name} posts small blind {FormatChips(smallAmt)} (Balance: {sb.Balance})");
 
         // Big Blind
-        AddToPot(_bigBlind);          
-        bb.Balance -= _bigBlind;       
-        bb.CurrentBet = _bigBlind;
-        bb.TotalContributed += _bigBlind;  
-        Console.WriteLine($"{bb.Name} posts big blind {FormatChips(_bigBlind)} (Balance: {bb.Balance})");
+        // Big Blind (special case jika balance kurang dari big blind)
+        int bbAmt = Math.Min(_bigBlind, bb.Balance);
 
+        AddToPot(bbAmt);
+        bb.Balance -= bbAmt;
+        bb.CurrentBet = bbAmt;
+        bb.TotalContributed += bbAmt;
+
+        if (bbAmt < _bigBlind)
+        {
+            Console.WriteLine($"{bb.Name} posts big blind {FormatChips(bbAmt)} (ALL-IN) (Balance: {bb.Balance})");
+        }
+        else
+        {
+            Console.WriteLine($"{bb.Name} posts big blind {FormatChips(bbAmt)} (Balance: {bb.Balance})");
+        }
+
+        // tetap set currentBet = _bigBlind supaya call minimum tidak turun
         _currentBet = _bigBlind;
-
-        Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
     }
 
 
@@ -1507,12 +1517,6 @@ public class PokerGame
     // utility: display table state
     public void ShowTableState()
     {
-        // Kick out players with 0 balance dulu
-        var eliminated = _players.Where(p => p.Balance <= 0).ToList();
-        foreach (var p in eliminated)
-        {
-            RemovePlayer(p);
-        }
 
         Console.WriteLine("\n=== TABLE STATE ===");
         Console.WriteLine("Players:");
@@ -1527,7 +1531,7 @@ public class PokerGame
 
 }
 
-class Program
+/*class Program
 {
     static void Main(string[] args)
     {
@@ -1556,6 +1560,36 @@ class Program
 
         Console.WriteLine("\n=== Game Selesai ===");
     }
-}
+}*/
     
+class Program
+{
+    static void Main(string[] args)
+    {
+        IDeck deck = new Deck();
+        Table table = new Table(deck);
+        PokerGame game = new PokerGame(table);
+
+        Console.WriteLine("=== Texas Hold'em Poker ===");
+
+        // Player 1 selalu Human
+        game.AddPlayer("Hikaromi", false);
+
+        // Player 2-4 otomatis Bot
+        game.AddPlayer("Bot2", true);
+        game.AddPlayer("Bot3", true);
+        game.AddPlayer("Bot4", true);
+
+        // 🔥 Atur manual balance biar simulasi special case
+        var players = game.GetPlayers();
+        players.First(p => p.Name == "Bot2").Balance = 1240; // normal SB
+        players.First(p => p.Name == "Bot3").Balance = 10;   // special case BB
+        players.First(p => p.Name == "Bot4").Balance = 1000; // normal
+
+        // Mulai game
+        game.StartGame();
+
+        Console.WriteLine("\n=== Game Selesai ===");
+    }
+}
 
