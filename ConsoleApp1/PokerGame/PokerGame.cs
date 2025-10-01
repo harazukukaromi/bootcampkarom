@@ -344,7 +344,9 @@ public class PokerGame
         _table.Pot.Clear();
 
         // eliminasi pemain bangkrut setelah showdown & distribusi pot
-        var eliminated = _players.Where(p => p.Balance <= 0).ToList();
+        var eliminated = _players
+        .Where(p => p.Balance <= 0 || p.Balance < (int)ChipType.White) // 💡 White = 10
+        .ToList();
         foreach (var p in eliminated)
             RemovePlayer(p);
 
@@ -1517,7 +1519,6 @@ public class PokerGame
     // utility: display table state
     public void ShowTableState()
     {
-
         Console.WriteLine("\n=== TABLE STATE ===");
         Console.WriteLine("Players:");
         foreach (var p in _players)
@@ -1531,7 +1532,7 @@ public class PokerGame
 
 }
 
-/*class Program
+class Program
 {
     static void Main(string[] args)
     {
@@ -1560,36 +1561,8 @@ public class PokerGame
 
         Console.WriteLine("\n=== Game Selesai ===");
     }
-}*/
-    
-class Program
-{
-    static void Main(string[] args)
-    {
-        IDeck deck = new Deck();
-        Table table = new Table(deck);
-        PokerGame game = new PokerGame(table);
-
-        Console.WriteLine("=== Texas Hold'em Poker ===");
-
-        // Player 1 selalu Human
-        game.AddPlayer("Hikaromi", false);
-
-        // Player 2-4 otomatis Bot
-        game.AddPlayer("Bot2", true);
-        game.AddPlayer("Bot3", true);
-        game.AddPlayer("Bot4", true);
-
-        // 🔥 Atur manual balance biar simulasi special case
-        var players = game.GetPlayers();
-        players.First(p => p.Name == "Bot2").Balance = 1240; // normal SB
-        players.First(p => p.Name == "Bot3").Balance = 10;   // special case BB
-        players.First(p => p.Name == "Bot4").Balance = 1000; // normal
-
-        // Mulai game
-        game.StartGame();
-
-        Console.WriteLine("\n=== Game Selesai ===");
-    }
 }
+    
+
+
 

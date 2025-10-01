@@ -312,4 +312,68 @@ public string EvaluateHand(List<ICard> handCards, List<ICard> communityCards)
         var allCards = handCards.Concat(communityCards).ToList();
         return EvaluateBestHand(allCards);
     }
+
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        IDeck deck = new Deck();
+        Table table = new Table(deck);
+        PokerGame game = new PokerGame(table);
+
+        Console.WriteLine("=== Texas Hold'em Poker ===");
+
+        // Player 1 selalu Human
+        game.AddPlayer("Hikaromi", false);
+
+        // Player 2-4 otomatis Bot
+        game.AddPlayer("Bot2", true);
+        game.AddPlayer("Bot3", true);
+        game.AddPlayer("Bot4", true);
+
+        // 🔥 Atur manual balance biar simulasi special case
+        var players = game.GetPlayers();
+        players.First(p => p.Name == "Bot2").Balance = 1240; // normal SB
+        players.First(p => p.Name == "Bot3").Balance = 10;   // special case BB
+        players.First(p => p.Name == "Bot4").Balance = 1000; // normal
+
+        // Mulai game
+        game.StartGame();
+
+        Console.WriteLine("\n=== Game Selesai ===");
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        IDeck deck = new Deck();
+        Table table = new Table(deck);
+        PokerGame game = new PokerGame(table);
+
+        Console.WriteLine("=== Texas Hold'em Poker ===");
+
+        // Player 1 selalu Human
+        game.AddPlayer("Hikaromi", false);
+
+        // Player 2-4 otomatis Bot
+        game.AddPlayer("Bot2", true);
+        game.AddPlayer("Bot3", true);
+        game.AddPlayer("Bot4", true);
+
+        // 🔥 Atur kondisi khusus
+        var players = game.GetPlayers();
+        players.First(p => p.Name == "Hikaromi").Balance = 1000;
+        players.First(p => p.Name == "Bot2").Balance = 1230; // normal SB
+        players.First(p => p.Name == "Bot3").Balance = 10;   // special case BB (all-in)
+        players.First(p => p.Name == "Bot4").Balance = 5;    // langsung dianggap bangkrut (< 10)
+
+        // Mulai game
+        game.StartGame();
+
+        Console.WriteLine("\n=== Game Selesai ===");
+    }
+}
 */
