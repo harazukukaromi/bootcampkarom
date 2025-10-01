@@ -242,51 +242,75 @@ public class PokerGame
             Console.WriteLine("\n=== Round Baru Dimulai ===");
             ResetDeck();
             ResetForNewRound();
-            RotateBlinds();   // geser blinds hanya sekali di sini
-            PostBlinds();     // baru kemudian pasang blind
+            RotateBlinds();
+            PostBlinds();
             DealCards();
 
-            // Jalankan fase betting + kartu community
-            BettingRounds();
-            if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); goto EndRound; }
+            // === Pre-Flop ===
+            if (BettingRounds())
+            {
+                HandleShowdownIfNeeded();
+                EndRound();
+                continue;
+            }
+            if (AllPlayersAllInOrFolded())
+            {
+                RevealRemainingCardsAndShowdown();
+                EndRound();
+                continue;
+            }
 
+            // === Flop ===
             DealCommunityCards(3);
             ResetForNewStage();
-            BettingRounds();
-            if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); goto EndRound; }
+            if (BettingRounds())
+            {
+                HandleShowdownIfNeeded();
+                EndRound();
+                continue;
+            }
+            if (AllPlayersAllInOrFolded())
+            {
+                RevealRemainingCardsAndShowdown();
+                EndRound();
+                continue;
+            }
 
+            // === Turn ===
             DealCommunityCards(1);
             ResetForNewStage();
-            BettingRounds();
-            if (AllPlayersAllInOrFolded()) { RevealRemainingCardsAndShowdown(); goto EndRound; }
+            if (BettingRounds())
+            {
+                HandleShowdownIfNeeded();
+                EndRound();
+                continue;
+            }
+            if (AllPlayersAllInOrFolded())
+            {
+                RevealRemainingCardsAndShowdown();
+                EndRound();
+                continue;
+            }
 
+            // === River ===
             DealCommunityCards(1);
             ResetForNewStage();
-            BettingRounds();
+            if (BettingRounds())
+            {
+                HandleShowdownIfNeeded();
+                EndRound();
+                continue;
+            }
 
+            // === Showdown normal ===
             Showdown();
             DistributePot();
-
-        EndRound:
-            Console.WriteLine("\n=== Ronde selesai ===");
-            ShowTableState();
-
-            string choice;
-            while (true)
-            {
-                Console.Write("Lanjut main? (1 = Ya, 2 = Keluar): ");
-                choice = Console.ReadLine();
-                if (choice == "1" || choice == "2") break;
-                Console.WriteLine("Input tidak valid. Pilih 1 atau 2.");
-            }
-
-            if (choice == "2")
-            {
-                Console.WriteLine("Game berakhir. Terima kasih sudah bermain!");
-                running = false;
-            }
+            EndRound();
         }
     }
+
+
+
     
     private void ResetRound()
     {
@@ -310,16 +334,38 @@ public class PokerGame
         }
     }
 
-   private void EndRound()
+    private void EndRound()
     {
-        Console.WriteLine("=== Ronde selesai ===");
+        Console.WriteLine("\n=== Ronde selesai ===");
 
         // reset pot
         _table.Pot.Clear();
 
+        // eliminasi pemain bangkrut setelah showdown & distribusi pot
+        var eliminated = _players.Where(p => p.Balance <= 0).ToList();
+        foreach (var p in eliminated)
+            RemovePlayer(p);
+
         // tampilkan state meja
         ShowTableState();
+
+        // ✅ tanya ke player apakah lanjut
+        string choice;
+        while (true)
+        {
+            Console.Write("Lanjut main? (1 = Ya, 2 = Keluar): ");
+            choice = Console.ReadLine();
+            if (choice == "1" || choice == "2") break;
+            Console.WriteLine("Input tidak valid. Pilih 1 atau 2.");
+        }
+
+        if (choice == "2")
+        {
+            Console.WriteLine("Game berakhir. Terima kasih sudah bermain!");
+            Environment.Exit(0);
+        }
     }
+
 
     private string GetStageFromCommunityCount()
     {
@@ -453,7 +499,7 @@ public class PokerGame
         Console.WriteLine($"Pot sekarang = {GetPotValue()}");
     }
 
-    private void BettingRounds()
+    private bool BettingRounds()
     {
         Console.WriteLine("\n-- Betting Round --");
 
@@ -468,7 +514,7 @@ public class PokerGame
         while (_players[startIndex].IsFolded || _players[startIndex].Balance == 0)
             startIndex = (startIndex + 1) % _players.Count;
 
-        if (_players.Count(p => !p.IsFolded && p.Balance > 0) <= 1) return;
+        if (_players.Count(p => !p.IsFolded && p.Balance > 0) <= 1) return true;
 
         int idx = startIndex;
         int lastAggressorIndex = -1;
@@ -479,7 +525,7 @@ public class PokerGame
         {
             var activePlayers = _players.Where(p => !p.IsFolded).ToList();
 
-            // ✅ jika tinggal 1 pemain → menang otomatis
+            // ✅ kalau tinggal 1 pemain → menang otomatis
             if (activePlayers.Count == 1)
             {
                 var winner = activePlayers.First();
@@ -490,24 +536,20 @@ public class PokerGame
                 Console.WriteLine($"{winner.Name} receives {potValue} from pot.");
 
                 _table.Pot.Clear();
-                Console.WriteLine("=== Ronde selesai ===");
-                ShowTableState();
-                return;
+                return true; // ✅ hentikan ronde di sini
             }
 
-
-            // ✅ kalau semua sudah All-In → lanjut buka kartu
+            // ✅ kalau semua sudah All-In → biar PlayRound yang handle
             if (activePlayers.All(p => p.Balance == 0))
             {
-                Console.WriteLine("Semua pemain sudah All-In → lanjut buka kartu sampai showdown.");
-                return;
+                return true;
             }
 
             bool allMatched = activePlayers.All(p => p.CurrentBet == _currentBet || p.Balance == 0);
             bool roundClosed = (lastAggressorIndex != -1 && idx == lastAggressorIndex);
 
             if (firstLoopCompleted && hasActed && allMatched && (lastAggressorIndex == -1 || roundClosed))
-                return;
+                return false; // ronde selesai normal
 
             var player = _players[idx];
 
@@ -561,6 +603,7 @@ public class PokerGame
                     AddToPot(callAmount);
                     player.Balance -= callAmount;
                     player.CurrentBet += callAmount;
+                    player.TotalContributed += callAmount;   //track kontribusi total
 
                     Console.WriteLine($"{player.Name} calls {callAmount} (Balance: {player.Balance})");
                     Console.WriteLine($"Pot sekarang = {GetPotValue()}");
@@ -594,14 +637,12 @@ public class PokerGame
                             continue;
                         }
 
-                        // cek range
                         if (raiseAmount < minRaiseAmount || raiseAmount > maxRaiseAmount)
                         {
                             Console.WriteLine($"Input tidak valid. Harus di antara {minRaiseAmount} dan {maxRaiseAmount}.");
                             continue;
                         }
 
-                        // bulatkan ke kelipatan 10 terdekat
                         int rounded = (int)(Math.Round(raiseAmount / 10.0) * 10);
                         if (rounded != raiseAmount)
                         {
@@ -609,7 +650,7 @@ public class PokerGame
                             raiseAmount = rounded;
                         }
 
-                        break; // valid → keluar loop
+                        break;
                     }
                 }
                 else
@@ -623,6 +664,7 @@ public class PokerGame
                 if (player.Balance < 0) player.Balance = 0;
 
                 player.CurrentBet += raiseAmount;
+                player.TotalContributed += raiseAmount;   // ✅ track kontribusi total
                 _currentBet = player.CurrentBet;
 
                 Console.WriteLine($"{player.Name} raises to {_currentBet} (Balance: {player.Balance})");
@@ -638,6 +680,7 @@ public class PokerGame
                 if (player.Balance < 0) player.Balance = 0;
 
                 player.CurrentBet += allInAmount;
+                player.TotalContributed += allInAmount;   //track kontribusi total
                 if (player.CurrentBet > _currentBet)
                     _currentBet = player.CurrentBet;
 
@@ -646,7 +689,21 @@ public class PokerGame
                 break;
         }
     }
+    private void HandleShowdownIfNeeded()
+    {
+        var activePlayers = _players.Where(p => !p.IsFolded).ToList();
 
+        // Kalau masih ada lebih dari 1 pemain → showdown
+        if (activePlayers.Count > 1)
+        {
+            Showdown();
+            DistributePot();
+        }
+        else
+        {
+            // kalau tinggal 1 pemain → dia sudah otomatis menang (pot udah dibagi di BettingRounds)
+        }
+    }
 
     private void Showdown()
     {
@@ -740,8 +797,48 @@ public class PokerGame
 
     private void DistributePot()
     {
-        //untuk dealer kedepannya
+        // Ambil semua pemain yang masih aktif
+        var activePlayers = _players.Where(p => !p.IsFolded).ToList();
+        if (activePlayers.Count == 0) return;
+
+        // Cari strength tertinggi dari showdown
+        var results = activePlayers
+            .Select(p => (player: p, result: EvaluateHand(p.Hand.Cards.ToList(), _communityCards)))
+            .ToList();
+
+        int bestStrength = results.Max(r => r.result.Strength);
+        var bestCandidates = results.Where(r => r.result.Strength == bestStrength).ToList();
+
+        if (bestCandidates.Count == 0) return;
+
+        // Bandingkan kickers
+        var winners = new List<IPlayer>();
+        var bestResult = bestCandidates.First().result;
+        winners.Add(bestCandidates.First().player);
+
+        for (int i = 1; i < bestCandidates.Count; i++)
+        {
+            int cmp = CompareKickers(bestCandidates[i].result.Kickers, bestResult.Kickers);
+            if (cmp > 0)
+            {
+                winners.Clear();
+                winners.Add(bestCandidates[i].player);
+                bestResult = bestCandidates[i].result;
+            }
+            else if (cmp == 0)
+            {
+                winners.Add(bestCandidates[i].player);
+            }
+        }
+
+        // Distribusi chip berdasarkan kontribusi side pot
+        SplitPotEvenlyAmong(winners);
+
+        // Reset kontribusi semua pemain untuk ronde berikutnya
+        foreach (var p in _players)
+            p.TotalContributed = 0;
     }
+
 
    public class HandResult
     {
@@ -1039,11 +1136,6 @@ public class PokerGame
     public void ClearCard() => _communityCards.Clear();
     private void ResetForNewRound()
     {
-        // singkirkan pemain dengan balance 0 sebelum ronde dimulai
-        var eliminated = _players.Where(p => p.Balance <= 0).ToList();
-        foreach (var p in eliminated)
-            RemovePlayer(p);
-
         _communityCards.Clear();
         _currentBet = 0;
 
@@ -1052,6 +1144,7 @@ public class PokerGame
             p.IsFolded = false;
             p.CurrentBet = 0;
             p.Hand.Cards.Clear();
+            p.TotalContributed = 0; 
         }
 
         // sinkronisasi list supaya tidak ada pemain ghost
@@ -1265,14 +1358,34 @@ public class PokerGame
     {
         if (winners == null || winners.Count == 0) return;
 
-        // Ambil kontribusi setiap pemain ke pot
-        var contributions = new Dictionary<IPlayer, int>();
-        foreach (var p in _players)
+        int totalPot = GetPotValue();
+
+        // ✅ kalau tidak ada all-in → bagi langsung total pot
+        bool noAllIn = _players.All(p => p.Balance > 0 || p.IsFolded);
+        if (noAllIn)
         {
-            contributions[p] = p.TotalContributed; // pastikan kamu punya field untuk simpan total bet pemain
+            var active = _players.Where(p => !p.IsFolded).ToList();
+            var potWinners = winners.Intersect(active).ToList();
+            if (potWinners.Count == 0) return;
+
+            int share = totalPot / potWinners.Count;
+            foreach (var w in potWinners)
+            {
+                AddChipsToPlayerByAmount(w, share);
+                Console.WriteLine($"{w.Name} receives {share} from pot.");
+            }
+
+            _table.Pot.Clear();
+            return; // ✅ selesai, gak bikin side pot
         }
 
-        // Ambil semua level kontribusi unik, urutkan dari kecil ke besar
+        // --- kalau ada all-in, pakai side pot logic lama ---
+        var contributions = new Dictionary<IPlayer, int>();
+        foreach (var p in _players)
+            contributions[p] = p.TotalContributed;
+
+        var showdownPlayers = _players.Where(p => !p.IsFolded && contributions[p] > 0).ToList();
+
         var levels = contributions.Values
             .Where(v => v > 0)
             .Distinct()
@@ -1284,30 +1397,30 @@ public class PokerGame
 
         foreach (int level in levels)
         {
-            // jumlah chip di level pot ini
-            int levelSize = (level - prev) * _players.Count(p => contributions[p] >= level);
+            int potShare = 0;
+            foreach (var p in _players)
+            {
+                int contributedAtLevel = Math.Min(contributions[p], level) - prev;
+                if (contributedAtLevel > 0)
+                    potShare += contributedAtLevel;
+            }
 
-            // siapa yang eligible (punya kontribusi >= level)
-            var eligibles = _players.Where(p => contributions[p] >= level && !p.IsFolded).ToList();
+            var eligibles = showdownPlayers.Where(p => contributions[p] >= level).ToList();
 
-            pots.Add((levelSize, eligibles));
+            if (potShare > 0 && eligibles.Count > 0)
+                pots.Add((potShare, eligibles));
+
             prev = level;
         }
 
-        // Reset pot karena kita akan distribusikan manual
         _table.Pot.Clear();
 
-        // Distribusikan setiap pot
         foreach (var (amount, eligibles) in pots)
         {
-            if (eligibles.Count == 0) continue;
-
-            // siapa pemenang di pot ini?
             var potWinners = winners.Intersect(eligibles).ToList();
             if (potWinners.Count == 0) continue;
 
             int share = amount / potWinners.Count;
-
             foreach (var w in potWinners)
             {
                 AddChipsToPlayerByAmount(w, share);
@@ -1315,6 +1428,9 @@ public class PokerGame
             }
         }
     }
+
+
+
 
 
    private void AddChipsToPlayerByAmount(IPlayer player, int amount)
