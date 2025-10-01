@@ -261,9 +261,18 @@ public class PokerGame
                 continue;
             }
 
+            // ✅ cek lagi setelah betting
+            if (AllPlayersAllInOrFolded())
+            {
+                RevealRemainingCardsAndShowdown();
+                EndRound();
+                continue;
+            }
+
             // === Flop ===
             DealCommunityCards(3);
             ResetForNewStage();
+
             if (AllPlayersAllInOrFolded())
             {
                 RevealRemainingCardsAndShowdown();
@@ -273,6 +282,14 @@ public class PokerGame
 
             if (BettingRounds())
             {
+                EndRound();
+                continue;
+            }
+
+            // ✅ cek lagi setelah betting
+            if (AllPlayersAllInOrFolded())
+            {
+                RevealRemainingCardsAndShowdown();
                 EndRound();
                 continue;
             }
@@ -280,14 +297,24 @@ public class PokerGame
             // === Turn ===
             DealCommunityCards(1);
             ResetForNewStage();
-            if (BettingRounds())
+
+            if (AllPlayersAllInOrFolded())
             {
                 RevealRemainingCardsAndShowdown();
                 EndRound();
                 continue;
             }
+
+            if (BettingRounds())
+            {
+                EndRound();
+                continue;
+            }
+
+            // ✅ cek lagi setelah betting
             if (AllPlayersAllInOrFolded())
             {
+                RevealRemainingCardsAndShowdown();
                 EndRound();
                 continue;
             }
@@ -295,7 +322,22 @@ public class PokerGame
             // === River ===
             DealCommunityCards(1);
             ResetForNewStage();
+
+            if (AllPlayersAllInOrFolded())
+            {
+                RevealRemainingCardsAndShowdown();
+                EndRound();
+                continue;
+            }
+
             if (BettingRounds())
+            {
+                EndRound();
+                continue;
+            }
+
+            // ✅ cek lagi terakhir
+            if (AllPlayersAllInOrFolded())
             {
                 RevealRemainingCardsAndShowdown();
                 EndRound();
@@ -308,6 +350,7 @@ public class PokerGame
             EndRound();
         }
     }
+
     
     private void ResetRound()
     {
@@ -516,34 +559,36 @@ public class PokerGame
 
         bool isPreFlop = _communityCards.Count == 0;
 
-        // --- CEK KONDISI CEPAT ---
-        int activeWithChips = _players.Count(p => !p.IsFolded && p.Balance > 0);
-        int allInPlayers = _players.Count(p => !p.IsFolded && p.Balance == 0);
+        var activePlayers = _players.Where(p => !p.IsFolded).ToList();
+        int activeWithChips = activePlayers.Count(p => p.Balance > 0);
+        int allInPlayers = activePlayers.Count(p => p.Balance == 0);
 
-        // Kalau semua sudah all-in → tidak ada betting lagi, lanjut showdown
-        if (_players.Where(p => !p.IsFolded).All(p => p.Balance == 0))
+        // ✅ Kalau semua sudah all-in → biarkan PlayRound yang reveal board penuh
+        if (activePlayers.All(p => p.Balance == 0))
         {
-            Console.WriteLine("Semua pemain sudah All-In → lanjut showdown.");
-            return false;
+            Console.WriteLine("Semua pemain sudah All-In → lanjut board penuh & showdown.");
+            return false; // jangan akhiri ronde di sini
         }
 
-        // Kalau hanya 1 pemain aktif dengan chip, sisanya all-in → jangan akhiri ronde,
-        // lanjut board lengkap dan showdown
+        // ✅ Kalau masih ada 1 pemain aktif dengan chip, sisanya all-in
         if (activeWithChips <= 1 && allInPlayers > 0)
         {
-            Console.WriteLine("Semua lawan sudah All-In → lanjut board lengkap dan showdown.");
-            return false;
+            Console.WriteLine("Semua lawan sudah All-In → lanjut board penuh & showdown.");
+            return false; // biar PlayRound reveal otomatis
         }
 
-        // Kalau memang hanya 1 pemain tersisa (lainnya fold semua) → menang otomatis
+        // ✅ Kalau tinggal 1 pemain (lainnya fold semua)
         if (activeWithChips <= 1 && allInPlayers == 0)
-            return true;
+        {
+            return true; // akhiri ronde → pemenang otomatis
+        }
 
+        // --- proses betting normal ---
         int startIndex = isPreFlop
             ? (_bigBlindIndex + 1) % _players.Count
             : (_smallBlindIndex + 1) % _players.Count;
 
-        // Cari pemain pertama yang bisa bertindak
+        // cari pemain pertama yang bisa bertindak
         int attempts = 0;
         while ((_players[startIndex].IsFolded || _players[startIndex].Balance == 0) && attempts < _players.Count)
         {
@@ -564,16 +609,16 @@ public class PokerGame
 
         while (true)
         {
-            var activePlayers = _players.Where(p => !p.IsFolded).ToList();
+            activePlayers = _players.Where(p => !p.IsFolded).ToList();
 
-            // Kalau semua aktif sudah all-in
+            // cek lagi: semua aktif all-in
             if (activePlayers.All(p => p.Balance == 0))
             {
-                Console.WriteLine("Semua pemain sudah All-In → lanjut showdown.");
-                return false;
+                Console.WriteLine("Semua pemain sudah All-In → lanjut board penuh & showdown.");
+                return false; // biar PlayRound reveal
             }
 
-            // Kalau tinggal 1 pemain → dia langsung menang
+            // kalau tinggal 1 pemain
             if (activePlayers.Count == 1)
             {
                 var winner = activePlayers.First();
@@ -583,7 +628,7 @@ public class PokerGame
                 AddChipsToPlayerByAmount(winner, potValue);
                 Console.WriteLine($"{winner.Name} receives {FormatChips(potValue)} from pot.");
                 _table.Pot.Clear();
-                return true;
+                return true; // ronde selesai
             }
 
             bool allMatched = activePlayers.All(p => p.CurrentBet == _currentBet || p.Balance == 0);
@@ -613,6 +658,7 @@ public class PokerGame
                 firstLoopCompleted = true;
         }
     }
+
 
 
     private void ProcessPlayerTurn(IPlayer player, PlayerAction action)
