@@ -1367,23 +1367,28 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
             if (potWinners.Count == 0) return;
 
             int share = totalPot / potWinners.Count;
-            foreach (var w in potWinners)
+            int rem = totalPot % potWinners.Count;
+
+            for (int i = 0; i < potWinners.Count; i++)
             {
-                AddChipsToPlayerByAmount(w, share);
-                Console.WriteLine($"{w.Name} receives {share} from pot.");
+                int give = share + (i == 0 ? rem : 0); // remainder to first winner (deterministic)
+                AddChipsToPlayerByAmount(potWinners[i], give);
+                Console.WriteLine($"{potWinners[i].Name} receives {give} from pot.");
             }
 
             _table.Pot.Clear();
-            return; // ✅ selesai, gak bikin side pot
+            return; // selesai
         }
 
-        // --- kalau ada all-in, pakai side pot logic lama ---
+        // --- kalau ada all-in, pakai side pot logic per-level ---
         var contributions = new Dictionary<IPlayer, int>();
         foreach (var p in _players)
             contributions[p] = p.TotalContributed;
 
+        // players yang masih showdown (tidak fold) dan punya kontribusi > 0
         var showdownPlayers = _players.Where(p => !p.IsFolded && contributions[p] > 0).ToList();
 
+        // semua level (termasuk kontribusi pemain yang fold) — urut naik
         var levels = contributions.Values
             .Where(v => v > 0)
             .Distinct()
@@ -1403,6 +1408,7 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
                     potShare += contributedAtLevel;
             }
 
+            // eligible = pemain yang *masih di showdown* (tidak fold) dan kontribusinya >= level
             var eligibles = showdownPlayers.Where(p => contributions[p] >= level).ToList();
 
             if (potShare > 0 && eligibles.Count > 0)
@@ -1413,23 +1419,61 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
 
         _table.Pot.Clear();
 
+        // helper lokal: tentukan pemenang terbaik di antara list pemain eligible
+        List<IPlayer> DetermineWinnersAmong(List<IPlayer> eligibles)
+        {
+            if (eligibles == null || eligibles.Count == 0) return new List<IPlayer>();
+
+            var results = eligibles
+                .Select(p => (player: p, result: EvaluateHand(p.Hand.Cards.ToList(), _communityCards)))
+                .ToList();
+
+            int bestStrength = results.Max(r => r.result.Strength);
+            var bestCandidates = results.Where(r => r.result.Strength == bestStrength).ToList();
+
+            var chosen = new List<IPlayer>();
+            var bestRes = bestCandidates.First().result;
+            chosen.Add(bestCandidates.First().player);
+
+            for (int i = 1; i < bestCandidates.Count; i++)
+            {
+                int cmp = CompareKickers(bestCandidates[i].result.Kickers, bestRes.Kickers);
+                if (cmp > 0)
+                {
+                    chosen.Clear();
+                    chosen.Add(bestCandidates[i].player);
+                    bestRes = bestCandidates[i].result;
+                }
+                else if (cmp == 0)
+                {
+                    chosen.Add(bestCandidates[i].player);
+                }
+            }
+
+            return chosen;
+        }
+
+        // Sekarang bagikan tiap pot berdasarkan eligibility + pemenang di antara eligibles
         foreach (var (amount, eligibles) in pots)
         {
-            var potWinners = winners.Intersect(eligibles).ToList();
-            if (potWinners.Count == 0) continue;
+            var potWinners = DetermineWinnersAmong(eligibles)
+                .Where(w => winners.Contains(w) || true) // winners param is not needed here; we evaluate per-pot
+                .ToList();
+
+            if (potWinners.Count == 0)
+                continue;
 
             int share = amount / potWinners.Count;
-            foreach (var w in potWinners)
+            int rem = amount % potWinners.Count;
+
+            for (int i = 0; i < potWinners.Count; i++)
             {
-                AddChipsToPlayerByAmount(w, share);
-                Console.WriteLine($"{w.Name} receives {share} from side pot.");
+                int give = share + (i == 0 ? rem : 0); // remainder to first winner deterministically
+                AddChipsToPlayerByAmount(potWinners[i], give);
+                Console.WriteLine($"{potWinners[i].Name} receives {give} from side pot.");
             }
         }
     }
-
-
-
-
 
    private void AddChipsToPlayerByAmount(IPlayer player, int amount)
     {
