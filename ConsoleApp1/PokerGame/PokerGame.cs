@@ -261,7 +261,6 @@ public class PokerGame
                 continue;
             }
 
-
             // === Flop ===
             DealCommunityCards(3);
             ResetForNewStage();
@@ -309,10 +308,6 @@ public class PokerGame
             EndRound();
         }
     }
-
-
-
-
     
     private void ResetRound()
     {
@@ -521,22 +516,44 @@ public class PokerGame
 
         bool isPreFlop = _communityCards.Count == 0;
 
+        // --- CEK KONDISI CEPAT ---
+        int activeWithChips = _players.Count(p => !p.IsFolded && p.Balance > 0);
+        int allInPlayers = _players.Count(p => !p.IsFolded && p.Balance == 0);
+
+        // Kalau semua sudah all-in → tidak ada betting lagi, lanjut showdown
+        if (_players.Where(p => !p.IsFolded).All(p => p.Balance == 0))
+        {
+            Console.WriteLine("Semua pemain sudah All-In → lanjut showdown.");
+            return false;
+        }
+
+        // Kalau hanya 1 pemain aktif dengan chip, sisanya all-in → jangan akhiri ronde,
+        // lanjut board lengkap dan showdown
+        if (activeWithChips <= 1 && allInPlayers > 0)
+        {
+            Console.WriteLine("Semua lawan sudah All-In → lanjut board lengkap dan showdown.");
+            return false;
+        }
+
+        // Kalau memang hanya 1 pemain tersisa (lainnya fold semua) → menang otomatis
+        if (activeWithChips <= 1 && allInPlayers == 0)
+            return true;
+
         int startIndex = isPreFlop
             ? (_bigBlindIndex + 1) % _players.Count
             : (_smallBlindIndex + 1) % _players.Count;
 
-        // skip pemain fold/all-in
-        while (_players[startIndex].IsFolded || _players[startIndex].Balance == 0)
-            startIndex = (startIndex + 1) % _players.Count;
-
-        // ✅ kalau tersisa 1 pemain → dia langsung menang
-        if (_players.Count(p => !p.IsFolded && p.Balance > 0) <= 1)
-            return true;
-
-        // ✅ kalau semua yang aktif sudah all-in → hentikan langsung
-        if (_players.Where(p => !p.IsFolded).All(p => p.Balance == 0))
+        // Cari pemain pertama yang bisa bertindak
+        int attempts = 0;
+        while ((_players[startIndex].IsFolded || _players[startIndex].Balance == 0) && attempts < _players.Count)
         {
-            Console.WriteLine("Semua pemain sudah All-In → lanjut showdown.");
+            startIndex = (startIndex + 1) % _players.Count;
+            attempts++;
+        }
+
+        if (attempts >= _players.Count)
+        {
+            Console.WriteLine("Tidak ada pemain yang bisa bertindak → lanjut showdown.");
             return false;
         }
 
@@ -549,14 +566,14 @@ public class PokerGame
         {
             var activePlayers = _players.Where(p => !p.IsFolded).ToList();
 
-            // ✅ kalau semua sudah all-in di tengah loop
+            // Kalau semua aktif sudah all-in
             if (activePlayers.All(p => p.Balance == 0))
             {
                 Console.WriteLine("Semua pemain sudah All-In → lanjut showdown.");
                 return false;
             }
 
-            // ✅ kalau tinggal 1 pemain → dia langsung menang
+            // Kalau tinggal 1 pemain → dia langsung menang
             if (activePlayers.Count == 1)
             {
                 var winner = activePlayers.First();
@@ -573,7 +590,7 @@ public class PokerGame
             bool roundClosed = (lastAggressorIndex != -1 && idx == lastAggressorIndex);
 
             if (firstLoopCompleted && hasActed && allMatched && (lastAggressorIndex == -1 || roundClosed))
-                return false; // ronde selesai normal
+                return false; // betting round selesai normal
 
             var player = _players[idx];
 
@@ -596,10 +613,6 @@ public class PokerGame
                 firstLoopCompleted = true;
         }
     }
-
-
-
-
 
 
     private void ProcessPlayerTurn(IPlayer player, PlayerAction action)
