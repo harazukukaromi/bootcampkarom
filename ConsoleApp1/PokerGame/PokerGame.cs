@@ -247,12 +247,6 @@ public class PokerGame
             DealCards();
 
             // === Pre-Flop ===
-            if (BettingRounds())
-            {
-                HandleShowdownIfNeeded();
-                EndRound();
-                continue;
-            }
             if (AllPlayersAllInOrFolded())
             {
                 RevealRemainingCardsAndShowdown();
@@ -260,18 +254,25 @@ public class PokerGame
                 continue;
             }
 
-            // === Flop ===
-            DealCommunityCards(3);
-            ResetForNewStage();
             if (BettingRounds())
             {
-                HandleShowdownIfNeeded();
                 EndRound();
                 continue;
             }
+
+
+            // === Flop ===
+            DealCommunityCards(3);
+            ResetForNewStage();
             if (AllPlayersAllInOrFolded())
             {
                 RevealRemainingCardsAndShowdown();
+                EndRound();
+                continue;
+            }
+
+            if (BettingRounds())
+            {
                 EndRound();
                 continue;
             }
@@ -281,13 +282,12 @@ public class PokerGame
             ResetForNewStage();
             if (BettingRounds())
             {
-                HandleShowdownIfNeeded();
+                RevealRemainingCardsAndShowdown();
                 EndRound();
                 continue;
             }
             if (AllPlayersAllInOrFolded())
             {
-                RevealRemainingCardsAndShowdown();
                 EndRound();
                 continue;
             }
@@ -297,7 +297,7 @@ public class PokerGame
             ResetForNewStage();
             if (BettingRounds())
             {
-                HandleShowdownIfNeeded();
+                RevealRemainingCardsAndShowdown();
                 EndRound();
                 continue;
             }
@@ -308,6 +308,7 @@ public class PokerGame
             EndRound();
         }
     }
+
 
 
 
@@ -541,10 +542,10 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
                 return true; // ✅ hentikan ronde di sini
             }
 
-            // ✅ kalau semua sudah All-In → biar PlayRound yang handle
+            // ✅ kalau semua sudah All-In → hentikan ronde ini, tapi tandai khusus
             if (activePlayers.All(p => p.Balance == 0))
             {
-                return true;
+                return false; // jangan true, biar PlayRound cek AllPlayersAllInOrFolded()
             }
 
             bool allMatched = activePlayers.All(p => p.CurrentBet == _currentBet || p.Balance == 0);
@@ -689,21 +690,6 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
                 Console.WriteLine($"{player.Name} goes ALL-IN with {allInAmount} (Balance: {player.Balance})");
                 Console.WriteLine($"Pot sekarang = {GetPotValue()}");
                 break;
-        }
-    }
-    private void HandleShowdownIfNeeded()
-    {
-        var activePlayers = _players.Where(p => !p.IsFolded).ToList();
-
-        // Kalau masih ada lebih dari 1 pemain → showdown
-        if (activePlayers.Count > 1)
-        {
-            Showdown();
-            DistributePot();
-        }
-        else
-        {
-            // kalau tinggal 1 pemain → dia sudah otomatis menang (pot udah dibagi di BettingRounds)
         }
     }
 
@@ -1358,7 +1344,7 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
 
         int totalPot = GetPotValue();
 
-        // ✅ kalau tidak ada all-in → bagi langsung total pot
+        // kalau tidak ada all-in → bagi langsung total pot
         bool noAllIn = _players.All(p => p.Balance > 0 || p.IsFolded);
         if (noAllIn)
         {
