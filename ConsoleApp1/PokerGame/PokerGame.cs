@@ -41,6 +41,7 @@ public enum GameEventType
     RoundEnded,
     PlayerFolded,
     PlayerRaised,
+    PlayerAllin
 }
 public enum ChipType
 {
@@ -486,21 +487,21 @@ public class PokerGame
         AddToPot(smallAmt);            
         sb.Balance -= smallAmt;        
         sb.CurrentBet = smallAmt;
-        sb.TotalContributed += smallAmt;   // <<-- catat kontribusi blind
-        Console.WriteLine($"{sb.Name} posts small blind {smallAmt} (Balance: {sb.Balance})");
+        sb.TotalContributed += smallAmt;   
+        Console.WriteLine($"{sb.Name} posts small blind {FormatChips(smallAmt)} (Balance: {sb.Balance})");
 
         // Big Blind
         AddToPot(_bigBlind);          
         bb.Balance -= _bigBlind;       
         bb.CurrentBet = _bigBlind;
-        bb.TotalContributed += _bigBlind;  // <<-- catat kontribusi blind
-Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance})");
+        bb.TotalContributed += _bigBlind;  
+        Console.WriteLine($"{bb.Name} posts big blind {FormatChips(_bigBlind)} (Balance: {bb.Balance})");
 
         _currentBet = _bigBlind;
 
-        // Debug
-        Console.WriteLine($"Pot sekarang = {GetPotValue()}");
+        Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
     }
+
 
     private bool BettingRounds()
     {
@@ -536,7 +537,8 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
 
                 int potValue = GetPotValue();
                 AddChipsToPlayerByAmount(winner, potValue);
-                Console.WriteLine($"{winner.Name} receives {potValue} from pot.");
+                Console.WriteLine($"{winner.Name} receives {FormatChips(potValue)} from pot.");
+
 
                 _table.Pot.Clear();
                 return true; // ✅ hentikan ronde di sini
@@ -606,10 +608,10 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
                     AddToPot(callAmount);
                     player.Balance -= callAmount;
                     player.CurrentBet += callAmount;
-                    player.TotalContributed += callAmount;   //track kontribusi total
+                    player.TotalContributed += callAmount;   
 
-                    Console.WriteLine($"{player.Name} calls {callAmount} (Balance: {player.Balance})");
-                    Console.WriteLine($"Pot sekarang = {GetPotValue()}");
+                    Console.WriteLine($"{player.Name} calls {FormatChips(callAmount)} (Balance: {player.Balance})");
+                    Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
                 }
                 break;
 
@@ -667,11 +669,11 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
                 if (player.Balance < 0) player.Balance = 0;
 
                 player.CurrentBet += raiseAmount;
-                player.TotalContributed += raiseAmount;   // ✅ track kontribusi total
+                player.TotalContributed += raiseAmount;   
                 _currentBet = player.CurrentBet;
 
-                Console.WriteLine($"{player.Name} raises to {_currentBet} (Balance: {player.Balance})");
-                Console.WriteLine($"Pot sekarang = {GetPotValue()}");
+                Console.WriteLine($"{player.Name} raises to {FormatChips(_currentBet)} (Balance: {player.Balance})");
+                Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
                 break;
 
             case PlayerAction.AllIn:
@@ -683,12 +685,12 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
                 if (player.Balance < 0) player.Balance = 0;
 
                 player.CurrentBet += allInAmount;
-                player.TotalContributed += allInAmount;   //track kontribusi total
+                player.TotalContributed += allInAmount;   
                 if (player.CurrentBet > _currentBet)
                     _currentBet = player.CurrentBet;
 
-                Console.WriteLine($"{player.Name} goes ALL-IN with {allInAmount} (Balance: {player.Balance})");
-                Console.WriteLine($"Pot sekarang = {GetPotValue()}");
+                Console.WriteLine($"{player.Name} goes ALL-IN with {FormatChips(allInAmount)} (Balance: {player.Balance})");
+                Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
                 break;
         }
     }
@@ -725,8 +727,9 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
             Console.WriteLine($"Winner: {soleWinner.Name} (all others folded)");
             var potChips = _table.Pot.ToList();
             _table.Pot.Clear();
+            int potValue = potChips.Sum(c => (int)c.Type);
             AddChipsListToPlayer(soleWinner, potChips);
-            return;
+            Console.WriteLine($"{soleWinner.Name} receives {FormatChips(potValue)} from pot.");
         }
 
         // kalau tidak ada pemain sama sekali
@@ -776,8 +779,6 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
             Console.WriteLine("Tie between: " + string.Join(", ", winners.Select(w => w.Name)));
         }
     }
-
-
 
     private void DistributePot()
     {
@@ -1268,6 +1269,29 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
             };
         }
     }
+    private string FormatChips(int amount)
+    {
+        if (amount <= 0) return "0";
+
+        var chips = new List<Chip>();
+        int remaining = amount;
+
+        while (remaining >= (int)ChipType.Black) { chips.Add(new Chip(ChipType.Black)); remaining -= (int)ChipType.Black; }
+        while (remaining >= (int)ChipType.Green) { chips.Add(new Chip(ChipType.Green)); remaining -= (int)ChipType.Green; }
+        while (remaining >= (int)ChipType.Red)   { chips.Add(new Chip(ChipType.Red));   remaining -= (int)ChipType.Red; }
+        while (remaining >= (int)ChipType.White) { chips.Add(new Chip(ChipType.White)); remaining -= (int)ChipType.White; }
+
+        NormalizeChips(chips);
+
+        var grouped = chips
+            .GroupBy(c => c.Type)
+            .OrderByDescending(g => g.Key) // urut besar → kecil
+            .Select(g => $"{g.Count()} {g.Key}")
+            .ToList();
+
+        return string.Join(" + ", grouped) + $" ({amount})";
+    }
+
 
     private List<Chip> RemoveChipsFromPlayer(IPlayer player, int amount)
     {
@@ -1285,7 +1309,7 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
         int remaining = toTake;
         while (remaining >= (int)ChipType.Black) { removed.Add(new Chip(ChipType.Black)); remaining -= (int)ChipType.Black; }
         while (remaining >= (int)ChipType.Green) { removed.Add(new Chip(ChipType.Green)); remaining -= (int)ChipType.Green; }
-        while (remaining >= (int)ChipType.Red)   { removed.Add(new Chip(ChipType.Red));   remaining -= (int)ChipType.Red; }
+        while (remaining >= (int)ChipType.Red) { removed.Add(new Chip(ChipType.Red)); remaining -= (int)ChipType.Red; }
         while (remaining >= (int)ChipType.White) { removed.Add(new Chip(ChipType.White)); remaining -= (int)ChipType.White; }
 
         // Jika ada sisa negatif (seharusnya tidak), kita abaikan — but toTake sudah dikalkulasi.
@@ -1357,9 +1381,9 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
 
             for (int i = 0; i < potWinners.Count; i++)
             {
-                int give = share + (i == 0 ? rem : 0); // remainder to first winner (deterministic)
+                int give = share + (i == 0 ? rem : 0); 
                 AddChipsToPlayerByAmount(potWinners[i], give);
-                Console.WriteLine($"{potWinners[i].Name} receives {give} from pot.");
+                Console.WriteLine($"{potWinners[i].Name} receives {FormatChips(give)} from pot.");
             }
 
             _table.Pot.Clear();
@@ -1454,9 +1478,9 @@ Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance}
 
             for (int i = 0; i < potWinners.Count; i++)
             {
-                int give = share + (i == 0 ? rem : 0); // remainder to first winner deterministically
+                int give = share + (i == 0 ? rem : 0); 
                 AddChipsToPlayerByAmount(potWinners[i], give);
-                Console.WriteLine($"{potWinners[i].Name} receives {give} from side pot.");
+                Console.WriteLine($"{potWinners[i].Name} receives {FormatChips(give)} from side pot.");
             }
         }
     }
