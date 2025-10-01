@@ -485,13 +485,15 @@ public class PokerGame
         AddToPot(smallAmt);            
         sb.Balance -= smallAmt;        
         sb.CurrentBet = smallAmt;
+        sb.TotalContributed += smallAmt;   // <<-- catat kontribusi blind
         Console.WriteLine($"{sb.Name} posts small blind {smallAmt} (Balance: {sb.Balance})");
 
         // Big Blind
         AddToPot(_bigBlind);          
         bb.Balance -= _bigBlind;       
         bb.CurrentBet = _bigBlind;
-        Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance})");
+        bb.TotalContributed += _bigBlind;  // <<-- catat kontribusi blind
+Console.WriteLine($"{bb.Name} posts big blind {_bigBlind} (Balance: {bb.Balance})");
 
         _currentBet = _bigBlind;
 
@@ -777,19 +779,15 @@ public class PokerGame
             }
         }
 
-        // tampilkan pemenang
+        // tampilkan pemenang (tidak langsung membayar di sini)
         if (winners.Count == 1)
         {
             var winPlayer = winners.First();
             Console.WriteLine($"Winner: {winPlayer.Name} with {results.First(r => r.player == winPlayer).result.Name}");
-            var potChips = _table.Pot.ToList();
-            _table.Pot.Clear();
-            AddChipsListToPlayer(winPlayer, potChips);
         }
         else
         {
             Console.WriteLine("Tie between: " + string.Join(", ", winners.Select(w => w.Name)));
-            SplitPotEvenlyAmong(winners);
         }
     }
 
