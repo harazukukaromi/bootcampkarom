@@ -38,6 +38,7 @@ public enum PlayerAction
 public enum GameEventType
 {
     GameStarted,
+    RoundStart,
     RoundEnded,
     PlayerFolded,
     PlayerRaised,
@@ -197,7 +198,7 @@ public class PokerGame
 
     private readonly List<IPlayer> _players = new();
 
-    public Action<GameEventType>? OnGameEvent;
+    public Action<GameEventType, IPlayer?>? OnGameEvent;
     public Action<IPlayer, string, int>? OnGameEnded;
     public Func<IPlayer, int, int, PlayerAction>? OnPlayerDecision;
 
@@ -219,13 +220,15 @@ public class PokerGame
         _players.Clear();
         _players.AddRange(_table.players);
 
+        OnGameEvent?.Invoke(GameEventType.GameStarted, null); // <-- trigger event
+
         if (_players.Count < 2)
         {
             Console.WriteLine("Tidak cukup pemain untuk memulai (minimal 2).");
             return;
         }
 
-        PlayRound(); // jalankan loop ronde
+        PlayRound();
     }
 
     private void RotateBlinds()
@@ -261,7 +264,7 @@ public class PokerGame
                 continue;
             }
 
-            // ✅ cek lagi setelah betting
+            // cek lagi setelah betting
             if (AllPlayersAllInOrFolded())
             {
                 RevealRemainingCardsAndShowdown();
@@ -286,7 +289,7 @@ public class PokerGame
                 continue;
             }
 
-            // ✅ cek lagi setelah betting
+            // cek lagi setelah betting
             if (AllPlayersAllInOrFolded())
             {
                 RevealRemainingCardsAndShowdown();
@@ -311,7 +314,7 @@ public class PokerGame
                 continue;
             }
 
-            // ✅ cek lagi setelah betting
+            // cek lagi setelah betting
             if (AllPlayersAllInOrFolded())
             {
                 RevealRemainingCardsAndShowdown();
@@ -336,7 +339,7 @@ public class PokerGame
                 continue;
             }
 
-            // ✅ cek lagi terakhir
+            // cek lagi terakhir
             if (AllPlayersAllInOrFolded())
             {
                 RevealRemainingCardsAndShowdown();
@@ -377,7 +380,7 @@ public class PokerGame
     private void EndRound()
     {
         Console.WriteLine("\n=== Ronde selesai ===");
-
+        OnGameEvent?.Invoke(GameEventType.RoundEnded, null); // <-- trigger event
         // reset pot
         _table.Pot.Clear();
 
@@ -669,6 +672,7 @@ public class PokerGame
         {
             case PlayerAction.Fold:
                 Fold(player);
+                OnGameEvent?.Invoke(GameEventType.PlayerFolded, player);
                 break;
 
             case PlayerAction.Check:
@@ -734,7 +738,6 @@ public class PokerGame
                             Console.WriteLine($"Input {raiseAmount} dibulatkan menjadi {rounded}.");
                             raiseAmount = rounded;
                         }
-
                         break;
                     }
                 }
@@ -754,6 +757,7 @@ public class PokerGame
 
                 Console.WriteLine($"{player.Name} raises to {FormatChips(_currentBet)} (Balance: {player.Balance})");
                 Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
+                OnGameEvent?.Invoke(GameEventType.PlayerRaised, player);
                 break;
 
             case PlayerAction.AllIn:
@@ -771,6 +775,7 @@ public class PokerGame
 
                 Console.WriteLine($"{player.Name} goes ALL-IN with {FormatChips(allInAmount)} (Balance: {player.Balance})");
                 Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
+                OnGameEvent?.Invoke(GameEventType.PlayerAllin, player);
                 break;
         }
     }
@@ -1195,7 +1200,6 @@ public class PokerGame
         }
     }
 
-
     public List<IPlayer> GetPlayers() => _table.players;
     public void AddCard(ICard card) => _communityCards.Add(card);
     public void ClearCard() => _communityCards.Clear();
@@ -1212,12 +1216,13 @@ public class PokerGame
             p.TotalContributed = 0; 
         }
 
-        // sinkronisasi list supaya tidak ada pemain ghost
         _players.Clear();
         _players.AddRange(_table.players);
 
         Console.WriteLine("Round baru dimulai.");
+        OnGameEvent?.Invoke(GameEventType.RoundStart, null); // <-- trigger event
     }
+
 
 
     public bool PlaceBet(int amount)
@@ -1597,7 +1602,6 @@ public class PokerGame
         ShowBoard();
         Console.WriteLine("===================\n");
     }
-
 }
 
 class Program
@@ -1607,6 +1611,32 @@ class Program
         IDeck deck = new Deck();
         Table table = new Table(deck);
         PokerGame game = new PokerGame(table);
+
+        // === PASANG EVENT HANDLER ===
+        game.OnGameEvent += (GameEventType evt, IPlayer? player) =>
+        {
+            switch (evt)
+            {
+                case GameEventType.GameStarted:
+                    Console.WriteLine("[EVENT] Game dimulai!");
+                    break;
+                case GameEventType.RoundStart:
+                    Console.WriteLine("[EVENT] Round baru dimulai.");
+                    break;
+                case GameEventType.RoundEnded:
+                    Console.WriteLine("[EVENT] Round berakhir.");
+                    break;
+                case GameEventType.PlayerFolded:
+                    Console.WriteLine($"[EVENT] {player?.Name} melakukan Fold.");
+                    break;
+                case GameEventType.PlayerRaised:
+                    Console.WriteLine($"[EVENT] {player?.Name} melakukan Raise.");
+                    break;
+                case GameEventType.PlayerAllin:
+                    Console.WriteLine($"[EVENT] {player?.Name} melakukan All-In!");
+                    break;
+            }
+        };
 
         Console.WriteLine("=== Texas Hold'em Poker ===");
 
@@ -1624,12 +1654,13 @@ class Program
             game.AddPlayer(botName, true);
         }
 
-        // Mulai game (di dalamnya akan ada loop PlayRound)
+        // Mulai game
         game.StartGame();
 
         Console.WriteLine("\n=== Game Selesai ===");
     }
 }
+
     
 
 
