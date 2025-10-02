@@ -42,7 +42,9 @@ public enum GameEventType
     RoundEnded,
     PlayerFolded,
     PlayerRaised,
-    PlayerAllin
+    PlayerAllin,
+    PlayerChecked,   
+    PlayerCalled     
 }
 public enum ChipType
 {
@@ -216,7 +218,7 @@ public class PokerGame
     }
     public void StartGame()
     {
-        Console.WriteLine("=== Game Start ===");
+        //Console.WriteLine("=== Game Start ===");
         _players.Clear();
         _players.AddRange(_table.players);
 
@@ -243,7 +245,7 @@ public class PokerGame
         bool running = true;
         while (running)
         {
-            Console.WriteLine("\n=== Round Baru Dimulai ===");
+            //Console.WriteLine("\n=== Round Baru Dimulai ===");
             ResetDeck();
             ResetForNewRound();
             RotateBlinds();
@@ -379,7 +381,7 @@ public class PokerGame
 
     private void EndRound()
     {
-        Console.WriteLine("\n=== Ronde selesai ===");
+        //Console.WriteLine("\n=== Ronde selesai ===");
         OnGameEvent?.Invoke(GameEventType.RoundEnded, null); // <-- trigger event
         // reset pot
         _table.Pot.Clear();
@@ -531,7 +533,7 @@ public class PokerGame
         sb.Balance -= smallAmt;        
         sb.CurrentBet = smallAmt;
         sb.TotalContributed += smallAmt;   
-        Console.WriteLine($"{sb.Name} posts small blind {FormatChips(smallAmt)} (Balance: {sb.Balance})");
+        Console.WriteLine($"{sb.Name} posts small blind {FormatChips(smallAmt)} (Chips: {FormatChips(sb.Balance)})");
 
         // Big Blind
         // Big Blind (special case jika balance kurang dari big blind)
@@ -544,11 +546,11 @@ public class PokerGame
 
         if (bbAmt < _bigBlind)
         {
-            Console.WriteLine($"{bb.Name} posts big blind {FormatChips(bbAmt)} (ALL-IN) (Balance: {bb.Balance})");
+            Console.WriteLine($"{bb.Name} posts big blind {FormatChips(bbAmt)} (ALL-IN) (Chips: {FormatChips(bb.Balance)})");
         }
         else
         {
-            Console.WriteLine($"{bb.Name} posts big blind {FormatChips(bbAmt)} (Balance: {bb.Balance})");
+            Console.WriteLine($"{bb.Name} posts big blind {FormatChips(bbAmt)} (Chips: {FormatChips(bb.Balance)})");
         }
 
         // tetap set currentBet = _bigBlind supaya call minimum tidak turun
@@ -676,28 +678,31 @@ public class PokerGame
                 break;
 
             case PlayerAction.Check:
-                Console.WriteLine($"{player.Name} checks.");
-                break;
+            // Console.WriteLine($"{player.Name} checks.");   // ❌ hapus ini
+            OnGameEvent?.Invoke(GameEventType.PlayerChecked, player);
+            break;
 
-            case PlayerAction.Call:
-                if (toCall <= 0)
-                {
-                    Console.WriteLine($"{player.Name} checks (no bet to call).");
-                }
-                else
-                {
-                    int callAmount = Math.Min(toCall, player.Balance);
-                    callAmount = (int)(Math.Round(callAmount / 10.0) * 10);
+        case PlayerAction.Call:
+            if (toCall <= 0)
+            {
+                // Console.WriteLine($"{player.Name} checks (no bet to call).");  // ❌ hapus ini
+                OnGameEvent?.Invoke(GameEventType.PlayerChecked, player);
+            }
+            else
+            {
+                int callAmount = Math.Min(toCall, player.Balance);
+                callAmount = (int)(Math.Round(callAmount / 10.0) * 10);
 
-                    AddToPot(callAmount);
-                    player.Balance -= callAmount;
-                    player.CurrentBet += callAmount;
-                    player.TotalContributed += callAmount;   
+                AddToPot(callAmount);
+                player.Balance -= callAmount;
+                player.CurrentBet += callAmount;
+                player.TotalContributed += callAmount;   
 
-                    Console.WriteLine($"{player.Name} calls {FormatChips(callAmount)} (Balance: {player.Balance})");
-                    Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
-                }
-                break;
+                // Console.WriteLine($"{player.Name} calls {FormatChips(callAmount)} (Balance: {player.Balance})"); // ❌ hapus ini
+                // Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}"); // boleh dihapus juga kalau mau full event
+                OnGameEvent?.Invoke(GameEventType.PlayerCalled, player);
+            }
+            break;
 
             case PlayerAction.Raise:
                 int minRaise = 10;
@@ -755,7 +760,7 @@ public class PokerGame
                 player.TotalContributed += raiseAmount;   
                 _currentBet = player.CurrentBet;
 
-                Console.WriteLine($"{player.Name} raises to {FormatChips(_currentBet)} (Balance: {player.Balance})");
+                //Console.WriteLine($"{player.Name} raises to {FormatChips(_currentBet)} (Chips: {FormatChips(player.Balance)})");
                 Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
                 OnGameEvent?.Invoke(GameEventType.PlayerRaised, player);
                 break;
@@ -773,7 +778,7 @@ public class PokerGame
                 if (player.CurrentBet > _currentBet)
                     _currentBet = player.CurrentBet;
 
-                Console.WriteLine($"{player.Name} goes ALL-IN with {FormatChips(allInAmount)} (Balance: {player.Balance})");
+                //Console.WriteLine($"{player.Name} goes ALL-IN with {FormatChips(allInAmount)} (Chips: {FormatChips(player.Balance)})");
                 Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
                 OnGameEvent?.Invoke(GameEventType.PlayerAllin, player);
                 break;
@@ -1219,7 +1224,7 @@ public class PokerGame
         _players.Clear();
         _players.AddRange(_table.players);
 
-        Console.WriteLine("Round baru dimulai.");
+        //Console.WriteLine("Round baru dimulai.");
         OnGameEvent?.Invoke(GameEventType.RoundStart, null); // <-- trigger event
     }
 
@@ -1283,7 +1288,7 @@ public class PokerGame
         if (player == null) return;
 
         player.IsFolded = true;
-        Console.WriteLine($"{player.Name} folds.");
+        //Console.WriteLine($"{player.Name} folds.");
     }
 
     public PlayerAction MakeDecision(IPlayer player, int currentBet, int minRaise)
@@ -1596,9 +1601,10 @@ public class PokerGame
         Console.WriteLine("Players:");
         foreach (var p in _players)
         {
-            Console.WriteLine($"- {p.Name} | Balance: {p.Balance} | Folded: {p.IsFolded}");
+            string chipText = FormatChips(p.Balance); // gunakan formatter chips
+            Console.WriteLine($"- {p.Name} | Chips: {chipText} | Folded: {p.IsFolded}");
         }
-        Console.WriteLine($"Pot value: {GetPotValue()}");
+        Console.WriteLine($"Pot value: {FormatChips(GetPotValue())}");
         ShowBoard();
         Console.WriteLine("===================\n");
     }
@@ -1634,6 +1640,12 @@ class Program
                     break;
                 case GameEventType.PlayerAllin:
                     Console.WriteLine($"[EVENT] {player?.Name} melakukan All-In!");
+                    break;
+                case GameEventType.PlayerChecked:
+                    Console.WriteLine($"[EVENT] {player?.Name} melakukan Check.");
+                    break;
+                case GameEventType.PlayerCalled:
+                    Console.WriteLine($"[EVENT] {player?.Name} melakukan Call.");
                     break;
             }
         };
