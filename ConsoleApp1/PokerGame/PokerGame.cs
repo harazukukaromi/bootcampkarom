@@ -834,7 +834,8 @@ public class PokerGame
             player.TotalContributed += raiseAmount;   
             _currentBet = player.CurrentBet;
 
-            //Console.WriteLine($"{player.Name} raises to {FormatChips(_currentBet)} (Chips: {FormatChips(player.Balance)})");
+            string chipText = FormatChips(raiseAmount); //
+            Console.WriteLine($"{player.Name} raises {chipText} (Chips left: {FormatChips(player.Balance)})");
             Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
             OnGameEvent?.Invoke(GameEventType.PlayerRaised, player);
             break;
