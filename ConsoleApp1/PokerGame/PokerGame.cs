@@ -218,11 +218,43 @@ public class PokerGame
     //Class Management
     public void StartGame()
     {
-        //Console.WriteLine("=== Game Start ===");
+        Console.WriteLine("=== Texas Hold'em Poker ===");
+        Console.WriteLine("1. Play a Game");
+        Console.WriteLine("2. Exit");
+
+        string choice;
+        while (true)
+        {
+            Console.Write("Pilih: ");
+            choice = Console.ReadLine();
+            if (choice == "1" || choice == "2") break;
+            Console.WriteLine("Input tidak valid. Pilih 1 atau 2.");
+        }
+
+        if (choice == "2")
+        {
+            Console.WriteLine("Game berakhir. Terima kasih sudah bermain!");
+            Environment.Exit(0);
+        }
+
+        // === Kalau pilih 1 baru minta nickname ===
+        Console.Write("Masukkan nickname untuk Player 1 (Human): ");
+        string humanName = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(humanName))
+            humanName = "Player1";
+        AddPlayer(humanName, false);
+
+        // Tambahkan 3 bot
+        for (int i = 2; i <= 4; i++)
+        {
+            string botName = $"Bot{i}";
+            AddPlayer(botName, true);
+        }
+
         _players.Clear();
         _players.AddRange(_table.players);
 
-        OnGameEvent?.Invoke(GameEventType.GameStarted, null); // <-- trigger event
+        OnGameEvent?.Invoke(GameEventType.GameStarted, null);
 
         if (_players.Count < 2)
         {
@@ -232,6 +264,9 @@ public class PokerGame
 
         PlayRound();
     }
+
+
+
 
     private void RotateBlinds()
     {
@@ -1584,18 +1619,15 @@ class Program
 {
     static void Main(string[] args)
     {
-        // buat semua dependency
         IDeck deck = new Deck();
         deck.Initialize();
         deck.Shuffle(new Random());
 
-        ICard dummyCard = new Card(Suit.Spades, Rank.Ace); // contoh kartu awal
-        IChip dummyChip = new Chip(ChipType.White);        // contoh chip awal
-        IPlayer dummyPlayer = new HumanPlayer("Initializer"); // contoh player awal
-
+        ICard dummyCard = new Card(Suit.Spades, Rank.Ace);
+        IChip dummyChip = new Chip(ChipType.White);
+        IPlayer dummyPlayer = new HumanPlayer("Initializer");
         ITable table = new Table(deck);
 
-        // masukkan dependency ke constructor
         PokerGame game = new PokerGame(table, dummyCard, dummyChip, deck, dummyPlayer);
 
         // event handler seperti biasa
