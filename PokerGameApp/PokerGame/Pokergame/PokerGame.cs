@@ -21,7 +21,7 @@ public class PokerGame
     public Action<IPlayer, string, int>? OnGameEnded;
     public Func<IPlayer, int, int, PlayerAction>? OnPlayerDecision;
 
-    public PokerGame(ITable table, ICard card, IChip chip, IDeck deck, IPlayer player)//ICard card, IChip chip, IDeck deck, IPlayer player)
+    public PokerGame(ITable table, ICard card, IChip chip, IDeck deck, IPlayer player)
     {
         _table = table ?? throw new ArgumentNullException(nameof(table));
         _random = new Random();
@@ -36,11 +36,43 @@ public class PokerGame
     //Class Management
     public void StartGame()
     {
-        //Console.WriteLine("=== Game Start ===");
+        Console.WriteLine("=== Texas Hold'em Poker ===");
+        Console.WriteLine("1. Play a Game");
+        Console.WriteLine("2. Exit");
+
+        string choice;
+        while (true)
+        {
+            Console.Write("Pilih: ");
+            choice = Console.ReadLine();
+            if (choice == "1" || choice == "2") break;
+            Console.WriteLine("Input tidak valid. Pilih 1 atau 2.");
+        }
+
+        if (choice == "2")
+        {
+            Console.WriteLine("Game berakhir. Terima kasih sudah bermain!");
+            Environment.Exit(0);
+        }
+
+        // === Kalau pilih 1 baru minta nickname ===
+        Console.Write("Masukkan nickname untuk Player 1 (Human): ");
+        string humanName = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(humanName))
+            humanName = "Player1";
+        AddPlayer(humanName, false);
+
+        // Tambahkan 3 bot
+        for (int i = 2; i <= 4; i++)
+        {
+            string botName = $"Bot{i}";
+            AddPlayer(botName, true);
+        }
+
         _players.Clear();
         _players.AddRange(_table.players);
 
-        OnGameEvent?.Invoke(GameEventType.GameStarted, null); // <-- trigger event
+        OnGameEvent?.Invoke(GameEventType.GameStarted, null);
 
         if (_players.Count < 2)
         {
@@ -314,8 +346,6 @@ public class PokerGame
         DistributePot();
     }
 
-
-
     private void DealCards()
     {
         Console.WriteLine("\n-- Dealing hole cards --");
@@ -401,7 +431,6 @@ public class PokerGame
         // tetap set currentBet = _bigBlind supaya call minimum tidak turun
         _currentBet = _bigBlind;
     }
-
 
     private bool BettingRounds()
     {
@@ -1048,7 +1077,7 @@ public class PokerGame
         _table.Deck.Shuffle(_random);
     }
 
-    private void ShuffleDeck()// class tambahan sementar untuk mengocok deck
+    /*private void ShuffleDeck()// class tambahan sementar untuk mengocok deck
     {
         var deck = _table.Deck.Cards;
         int n = deck.Count;
@@ -1058,7 +1087,8 @@ public class PokerGame
             int k = _random.Next(n + 1);
             (deck[k], deck[n]) = (deck[n], deck[k]);
         }
-    }
+    }*/
+
     public IDeck GotDeck() => _table.Deck;
     public int GetPot() => 20;
     public void AddToPot(int amount)
@@ -1377,7 +1407,7 @@ public class PokerGame
         player.Chips.AddRange(toAdd);
         NormalizeChips(player.Chips);
 
-        // 🔥 update balance juga
+        //update balance juga
         player.Balance += amount;
     }
 

@@ -4,18 +4,15 @@ class Program
 {
     static void Main(string[] args)
     {
-        // buat semua dependency
         IDeck deck = new Deck();
         deck.Initialize();
         deck.Shuffle(new Random());
 
-        ICard dummyCard = new Card(Suit.Spades, Rank.Ace); // contoh kartu awal
-        IChip dummyChip = new Chip(ChipType.White);        // contoh chip awal
-        IPlayer dummyPlayer = new HumanPlayer("Initializer"); // contoh player awal
-
+        ICard dummyCard = new Card(Suit.Spades, Rank.Ace);
+        IChip dummyChip = new Chip(ChipType.White);
+        IPlayer dummyPlayer = new HumanPlayer("Initializer");
         ITable table = new Table(deck);
 
-        // masukkan dependency ke constructor
         PokerGame game = new PokerGame(table, dummyCard, dummyChip, deck, dummyPlayer);
 
         // event handler seperti biasa
