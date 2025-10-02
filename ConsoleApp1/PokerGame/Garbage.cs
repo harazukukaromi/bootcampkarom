@@ -363,7 +363,7 @@ class Program
         game.AddPlayer("Bot3", true);
         game.AddPlayer("Bot4", true);
 
-        // 🔥 Atur kondisi khusus
+        //Atur kondisi khusus
         var players = game.GetPlayers();
         players.First(p => p.Name == "Hikaromi").Balance = 1000;
         players.First(p => p.Name == "Bot2").Balance = 1230; // normal SB
