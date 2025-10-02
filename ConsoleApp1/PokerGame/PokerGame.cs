@@ -204,7 +204,7 @@ public class PokerGame
     public Action<IPlayer, string, int>? OnGameEnded;
     public Func<IPlayer, int, int, PlayerAction>? OnPlayerDecision;
 
-    public PokerGame(ITable table, ICard card = null, IChip chip = null, IDeck deck = null, IPlayer player = null)//ICard card, IChip chip, IDeck deck, IPlayer player)
+    public PokerGame(ITable table, ICard card, IChip chip, IDeck deck, IPlayer player)//ICard card, IChip chip, IDeck deck, IPlayer player)
     {
         _table = table ?? throw new ArgumentNullException(nameof(table));
         _random = new Random();
@@ -1227,9 +1227,6 @@ public class PokerGame
         //Console.WriteLine("Round baru dimulai.");
         OnGameEvent?.Invoke(GameEventType.RoundStart, null); // <-- trigger event
     }
-
-
-
     public bool PlaceBet(int amount)
     {
         if (amount < _currentBet) return false;
@@ -1614,12 +1611,22 @@ class Program
 {
     static void Main(string[] args)
     {
+        // buat semua dependency
         IDeck deck = new Deck();
-        Table table = new Table(deck);
-        PokerGame game = new PokerGame(table);
+        deck.Initialize();
+        deck.Shuffle(new Random());
 
-        // === PASANG EVENT HANDLER ===
-        game.OnGameEvent += (GameEventType evt, IPlayer? player) =>
+        ICard dummyCard = new Card(Suit.Spades, Rank.Ace); // contoh kartu awal
+        IChip dummyChip = new Chip(ChipType.White);        // contoh chip awal
+        IPlayer dummyPlayer = new HumanPlayer("Initializer"); // contoh player awal
+
+        ITable table = new Table(deck);
+
+        // masukkan dependency ke constructor
+        PokerGame game = new PokerGame(table, dummyCard, dummyChip, deck, dummyPlayer);
+
+        // event handler seperti biasa
+        game.OnGameEvent += (evt, p) =>
         {
             switch (evt)
             {
@@ -1633,33 +1640,33 @@ class Program
                     Console.WriteLine("[EVENT] Round berakhir.");
                     break;
                 case GameEventType.PlayerFolded:
-                    Console.WriteLine($"[EVENT] {player?.Name} melakukan Fold.");
+                    Console.WriteLine($"[EVENT] {p?.Name} melakukan Fold.");
                     break;
                 case GameEventType.PlayerRaised:
-                    Console.WriteLine($"[EVENT] {player?.Name} melakukan Raise.");
+                    Console.WriteLine($"[EVENT] {p?.Name} melakukan Raise.");
                     break;
                 case GameEventType.PlayerAllin:
-                    Console.WriteLine($"[EVENT] {player?.Name} melakukan All-In!");
+                    Console.WriteLine($"[EVENT] {p?.Name} melakukan All-In!");
                     break;
                 case GameEventType.PlayerChecked:
-                    Console.WriteLine($"[EVENT] {player?.Name} melakukan Check.");
+                    Console.WriteLine($"[EVENT] {p?.Name} melakukan Check.");
                     break;
                 case GameEventType.PlayerCalled:
-                    Console.WriteLine($"[EVENT] {player?.Name} melakukan Call.");
+                    Console.WriteLine($"[EVENT] {p?.Name} melakukan Call.");
                     break;
             }
         };
 
         Console.WriteLine("=== Texas Hold'em Poker ===");
 
-        // Player 1 selalu Human
+        // Human player
         Console.Write("Masukkan nickname untuk Player 1 (Human): ");
         string humanName = Console.ReadLine();
         if (string.IsNullOrWhiteSpace(humanName))
             humanName = "Player1";
         game.AddPlayer(humanName, false);
 
-        // Player 2-4 otomatis Bot
+        // Tambahkan 3 bot
         for (int i = 2; i <= 4; i++)
         {
             string botName = $"Bot{i}";
@@ -1668,9 +1675,8 @@ class Program
 
         // Mulai game
         game.StartGame();
-
-        Console.WriteLine("\n=== Game Selesai ===");
     }
+
 }
 
     
