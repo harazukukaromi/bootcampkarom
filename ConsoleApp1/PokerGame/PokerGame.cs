@@ -237,17 +237,31 @@ public class PokerGame
             Environment.Exit(0);
         }
 
-        // === Kalau pilih 1 baru minta nickname ===
+        // --- Input untuk Human ---
         Console.Write("Masukkan nickname untuk Player 1 (Human): ");
         string humanName = Console.ReadLine();
         if (string.IsNullOrWhiteSpace(humanName))
             humanName = "Player1";
         AddPlayer(humanName, false);
 
-        // Tambahkan 3 bot
-        for (int i = 2; i <= 4; i++)
+        // --- Input jumlah bot ---
+        int botCount = 0;
+        while (true)
         {
-            string botName = $"Bot{i}";
+            Console.Write("Masukkan jumlah bot (1-3): ");
+            string input = Console.ReadLine();
+            if (int.TryParse(input, out botCount) && botCount >= 1 && botCount <= 3)
+                break;
+            Console.WriteLine("Input tidak valid. Harus antara 1 sampai 3.");
+        }
+
+        // --- Input nama tiap bot ---
+        for (int i = 1; i <= botCount; i++)
+        {
+            Console.Write($"Masukkan nickname untuk Bot {i}: ");
+            string botName = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(botName))
+                botName = $"Bot{i}";
             AddPlayer(botName, true);
         }
 
@@ -1195,17 +1209,19 @@ public class PokerGame
             return;
         }
 
-        if (_table.players.Any(p => p.Name == name))
+        if (_table.players.Any(p => p.Name == name || p.Name == name + " (Bot)"))
         {
             Console.WriteLine($"Player {name} sudah ada di meja.");
             return;
         }
 
-        IPlayer player = isAI ? new AIPlayer(name, 1000) : new HumanPlayer(name, 1000);
+        string finalName = isAI ? name + " (Bot)" : name;
+        IPlayer player = isAI ? new AIPlayer(finalName, 1000) : new HumanPlayer(finalName, 1000);
 
         _table.players.Add(player);
         Console.WriteLine($"{player.Name} bergabung ke meja. Total players: {_table.players.Count}/4");
     }
+
     public void RemovePlayer(IPlayer player)    
     {
         if (_table.players.Remove(player))
