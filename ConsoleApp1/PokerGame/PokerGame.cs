@@ -1630,7 +1630,7 @@ class Program
 
         PokerGame game = new PokerGame(table, dummyCard, dummyChip, deck, dummyPlayer);
 
-        // event handler seperti biasa
+        // event handler
         game.OnGameEvent += (evt, p) =>
         {
             switch (evt)
@@ -1662,27 +1662,11 @@ class Program
             }
         };
 
-        Console.WriteLine("=== Texas Hold'em Poker ===");
-
-        // Human player
-        Console.Write("Masukkan nickname untuk Player 1 (Human): ");
-        string humanName = Console.ReadLine();
-        if (string.IsNullOrWhiteSpace(humanName))
-            humanName = "Player1";
-        game.AddPlayer(humanName, false);
-
-        // Tambahkan 3 bot
-        for (int i = 2; i <= 4; i++)
-        {
-            string botName = $"Bot{i}";
-            game.AddPlayer(botName, true);
-        }
-
-        // Mulai game
+        // 👉 Panggil langsung menu utama dari StartGame
         game.StartGame();
     }
-
 }
+
 
     
 
