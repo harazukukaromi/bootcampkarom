@@ -501,14 +501,22 @@ public class PokerGame
             var playerCards = p.Hand.Cards.ToList();
             var result = EvaluateHand(playerCards, _communityCards);
 
-            string hole = string.Join(", ", playerCards.Select(c => $"{c.Rank} of {c.Suit}"));
-            string kickerNames = !string.IsNullOrEmpty(result.KickersAsString) ? result.KickersAsString : "-";
+            if (p is HumanPlayer || stage == "Showdown")
+            {
+                string hole = string.Join(", ", playerCards.Select(c => $"{c.Rank} of {c.Suit}"));
+                string kickerNames = !string.IsNullOrEmpty(result.KickersAsString) ? result.KickersAsString : "-";
 
-            Console.WriteLine($"{p.Name}: {result.Name} (Strength {result.Strength})");
-            Console.WriteLine($"   Hole Cards : {hole}");
-            Console.WriteLine($"   Kickers    : {kickerNames}");
+                Console.WriteLine($"{p.Name}: {result.Name} (Strength {result.Strength})");
+                Console.WriteLine($"   Hole Cards : {hole}");
+                Console.WriteLine($"   Kickers    : {kickerNames}");
+            }
+            else
+            {
+                Console.WriteLine($"{p.Name}: [Cards Hidden]");
+            }
         }
     }
+
 
     private bool AllPlayersAllInOrFolded()
     {
@@ -541,15 +549,20 @@ public class PokerGame
             var c1 = DealCardDeck();
             var c2 = DealCardDeck();
             ((Hand)p.Hand).AddCard(c1);
-                ((Hand)p.Hand).AddCard(c2);
+            ((Hand)p.Hand).AddCard(c2);
 
-            string holeCards = $"{c1.Rank} of {c1.Suit}, {c2.Rank} of {c2.Suit}";
-            Console.WriteLine($"{p.Name} gets: {holeCards}");
+            if (p is HumanPlayer)
+            {
+                string holeCards = $"{c1.Rank} of {c1.Suit}, {c2.Rank} of {c2.Suit}";
+                Console.WriteLine($"{p.Name} gets: {holeCards}");
+            }
+            else
+            {
+                Console.WriteLine($"{p.Name} gets: [Hidden]");
+            }
         }
-
-        // tampilkan ringkasan kondisi Pre-Flop (sekali saja)
-        UpdatePlayerHandStates("Pre-Flop");
     }
+
 
     private void DealCommunityCards(int count)
     {
