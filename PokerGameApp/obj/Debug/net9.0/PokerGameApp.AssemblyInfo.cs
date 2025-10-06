@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PokerGameApp")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+993cf1e26069f56a18f6e7c35f5dc8f1a1273c04")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ef3521c8524e909c431d1461431e6ef4512a085c")]
 [assembly: System.Reflection.AssemblyProductAttribute("PokerGameApp")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PokerGameApp")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

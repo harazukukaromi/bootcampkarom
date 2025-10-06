@@ -1,4 +1,4 @@
-namespace PokerGameApp;
+using PokerGameApp;
 public class HumanPlayer : IPlayer
 {
     public string Name { get; }
