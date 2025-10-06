@@ -375,7 +375,7 @@ public class PokerGame
             }
             else
             {
-                Console.WriteLine($"{p.Name} gets: [Hidden]");
+                Console.WriteLine($"{p.Name} gets: [Hidden]"); //
             }
         }
     }
@@ -1400,7 +1400,7 @@ public class PokerGame
             string chipText = FormatChips(p.Balance);
             Console.WriteLine($"- {p.Name} | Chips: {chipText} | Folded: {p.IsFolded}");
         }
-        Console.WriteLine($"Pot value: {FormatChips(_totalPot)}"); // 🔥 gunakan total pot
+        Console.WriteLine($"Pot value: {FormatChips(_totalPot)}"); //gunakan total pot
         ShowBoard();
         Console.WriteLine("===================\n");
     }
