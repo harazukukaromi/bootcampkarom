@@ -27,3 +27,4 @@ E:\code\bootcampkarom-main\PokerGameApp\obj\Debug\net9.0\refint\PokerGameApp.dll
 E:\code\bootcampkarom-main\PokerGameApp\obj\Debug\net9.0\PokerGameApp.pdb
 E:\code\bootcampkarom-main\PokerGameApp\obj\Debug\net9.0\PokerGameApp.genruntimeconfig.cache
 E:\code\bootcampkarom-main\PokerGameApp\obj\Debug\net9.0\ref\PokerGameApp.dll
+E:\code\bootcampkarom-main\PokerGameApp\obj\Debug\net9.0\PokerGameApp.sourcelink.json
