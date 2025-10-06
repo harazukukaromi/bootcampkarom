@@ -557,91 +557,96 @@ public class PokerGame
     }
 
     private void ProcessPlayerTurn(IPlayer player, PlayerAction action)
-{
-    int toCall = _currentBet - player.CurrentBet;
-
-    switch (action)
     {
-        case PlayerAction.Fold:
-            player.IsFolded = true;
-            OnGameEvent?.Invoke(GameEventType.PlayerFolded, player);
-            OnGameLog?.Invoke($"{player.Name} folds.");
-            break;
+        int toCall = _currentBet - player.CurrentBet;
+        if (action == PlayerAction.Check && toCall > 0)
+        {
+            OnGameLog?.Invoke($"{player.Name} tidak bisa Check karena ada taruhan sebesar {FormatChips(toCall)} untuk dipanggil.");
+            OnGameLog?.Invoke("Aksi diubah menjadi Call secara otomatis.");
+            action = PlayerAction.Call;
+        }
+        switch (action)
+        {
+            case PlayerAction.Fold:
+                player.IsFolded = true;
+                OnGameEvent?.Invoke(GameEventType.PlayerFolded, player);
+                OnGameLog?.Invoke($"{player.Name} folds.");
+                break;
 
-        case PlayerAction.Check:
-            OnGameEvent?.Invoke(GameEventType.PlayerChecked, player);
-            OnGameLog?.Invoke($"{player.Name} checks.");
-            break;
-
-        case PlayerAction.Call:
-            if (toCall <= 0)
-            {
-                // Tidak ada bet yang perlu dipanggil → dianggap Check
+            case PlayerAction.Check:
                 OnGameEvent?.Invoke(GameEventType.PlayerChecked, player);
-                OnGameLog?.Invoke($"{player.Name} checks (no bet to call).");
-            }
-            else
-            {
-                int callAmount = Math.Min(toCall, player.Balance);
-                callAmount = (int)(Math.Round(callAmount / 10.0) * 10);
+                OnGameLog?.Invoke($"{player.Name} checks.");
+                break;
 
-                AddToPot(callAmount);
-                player.Balance -= callAmount;
-                player.CurrentBet += callAmount;
-                player.TotalContributed += callAmount;
+            case PlayerAction.Call:
+                if (toCall <= 0)
+                {
+                    // Tidak ada bet yang perlu dipanggil → dianggap Check
+                    OnGameEvent?.Invoke(GameEventType.PlayerChecked, player);
+                    OnGameLog?.Invoke($"{player.Name} checks (no bet to call).");
+                }
+                else
+                {
+                    int callAmount = Math.Min(toCall, player.Balance);
+                    callAmount = (int)(Math.Round(callAmount / 10.0) * 10);
 
-                OnGameEvent?.Invoke(GameEventType.PlayerCalled, player);
-                OnGameLog?.Invoke($"{player.Name} calls {FormatChips(callAmount)} (Balance: {FormatChips(player.Balance)})");
-                OnGameLog?.Invoke($"Pot sekarang = {FormatChips(GetPotValue())}");
-            }
-            break;
+                    AddToPot(callAmount);
+                    player.Balance -= callAmount;
+                    player.CurrentBet += callAmount;
+                    player.TotalContributed += callAmount;
 
-        case PlayerAction.Raise:
-            {
-                int raiseAmount = OnRequestRaiseAmount?.Invoke(player.Name, toCall, _minRaise)
-                                  ?? (toCall + _minRaise);
+                    OnGameEvent?.Invoke(GameEventType.PlayerCalled, player);
+                    OnGameLog?.Invoke($"{player.Name} calls {FormatChips(callAmount)} (Balance: {FormatChips(player.Balance)})");
+                    OnGameLog?.Invoke($"Pot sekarang = {FormatChips(GetPotValue())}");
+                }
+                break;
 
-                // Validasi nilai raise
-                if (raiseAmount < toCall + _minRaise)
-                    raiseAmount = toCall + _minRaise;
+            case PlayerAction.Raise:
+                {
+                    int raiseAmount = OnRequestRaiseAmount?.Invoke(player.Name, toCall, _minRaise)
+                                    ?? (toCall + _minRaise);
 
-                if (raiseAmount > player.Balance)
-                    raiseAmount = player.Balance;
+                    // Validasi nilai raise
+                    if (raiseAmount < toCall + _minRaise)
+                        raiseAmount = toCall + _minRaise;
 
-                raiseAmount = (int)(Math.Round(raiseAmount / 10.0) * 10);
+                    if (raiseAmount > player.Balance)
+                        raiseAmount = player.Balance;
 
-                AddToPot(raiseAmount);
-                player.Balance -= raiseAmount;
-                player.CurrentBet += raiseAmount;
-                player.TotalContributed += raiseAmount;
-                _currentBet = player.CurrentBet;
+                    raiseAmount = (int)(Math.Round(raiseAmount / 10.0) * 10);
 
-                OnGameEvent?.Invoke(GameEventType.PlayerRaised, player);
-                OnGameLog?.Invoke($"{player.Name} raises {FormatChips(raiseAmount)} (Chips left: {FormatChips(player.Balance)})");
-                OnGameLog?.Invoke($"Pot sekarang = {FormatChips(GetPotValue())}");
-            }
-            break;
-
-        case PlayerAction.AllIn:
-            {
-                int allInAmount = player.Balance;
-                allInAmount = (int)(Math.Round(allInAmount / 10.0) * 10);
-
-                AddToPot(allInAmount);
-                player.Balance = 0;
-                player.CurrentBet += allInAmount;
-                player.TotalContributed += allInAmount;
-
-                if (player.CurrentBet > _currentBet)
+                    AddToPot(raiseAmount);
+                    player.Balance -= raiseAmount;
+                    player.CurrentBet += raiseAmount;
+                    player.TotalContributed += raiseAmount;
                     _currentBet = player.CurrentBet;
 
-                OnGameEvent?.Invoke(GameEventType.PlayerAllin, player);
-                OnGameLog?.Invoke($"{player.Name} goes ALL-IN with {FormatChips(allInAmount)}");
-                OnGameLog?.Invoke($"Pot sekarang = {FormatChips(GetPotValue())}");
-            }
-            break;
+                    OnGameEvent?.Invoke(GameEventType.PlayerRaised, player);
+                    OnGameLog?.Invoke($"{player.Name} raises {FormatChips(raiseAmount)} (Chips left: {FormatChips(player.Balance)})");
+                    OnGameLog?.Invoke($"Pot sekarang = {FormatChips(GetPotValue())}");
+                }
+                break;
+
+            case PlayerAction.AllIn:
+                {
+                    int allInAmount = player.Balance;
+                    allInAmount = (int)(Math.Round(allInAmount / 10.0) * 10);
+
+                    AddToPot(allInAmount);
+                    player.Balance = 0;
+                    player.CurrentBet += allInAmount;
+                    player.TotalContributed += allInAmount;
+
+                    if (player.CurrentBet > _currentBet)
+                        _currentBet = player.CurrentBet;
+
+                    OnGameEvent?.Invoke(GameEventType.PlayerAllin, player);
+                    OnGameLog?.Invoke($"{player.Name} goes ALL-IN with {FormatChips(allInAmount)}");
+                    OnGameLog?.Invoke($"Pot sekarang = {FormatChips(GetPotValue())}");
+                }
+                break;
+        }
     }
-}
 
     private void Showdown()
     {

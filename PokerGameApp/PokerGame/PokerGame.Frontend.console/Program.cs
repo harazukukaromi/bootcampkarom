@@ -76,7 +76,6 @@ namespace PokerGameApp.FrontendConsole
                     Console.WriteLine("Input tidak valid. Masukkan angka.");
                 }
             };
-
             // === Jalankan game ===
             game.StartGame();
         }
