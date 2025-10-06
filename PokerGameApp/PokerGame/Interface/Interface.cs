@@ -37,3 +37,4 @@ public interface ITable
     IDeck Deck { get; }
     List<Chip> Pot { get; }
 }
+
