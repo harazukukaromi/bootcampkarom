@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+
 namespace PokerGameApp;
 
 public class PokerGame
@@ -19,8 +20,13 @@ public class PokerGame
     private readonly List<IPlayer> _players = new();
 
     public Action<GameEventType, IPlayer?>? OnGameEvent;
-    public Action<IPlayer, string, int>? OnGameEnded;
-    public Func<IPlayer, int, int, PlayerAction>? OnPlayerDecision;
+    public Action<string>? OnGameLog; // untuk log text ke frontend
+    public Func<IPlayer, PlayerAction>? OnRequestDecision; // frontend menentukan aksi human
+    public Func<string, int, int, int>? OnRequestRaiseAmount; // frontend minta jumlah raise (untuk human)
+    public Func<string, string>? OnRequestInput;
+    public Func<string, int>? OnRequestNumber;
+
+
 
     public PokerGame(ITable table, ICard card, IChip chip, IDeck deck, IPlayer player)//ICard card, IChip chip, IDeck deck, IPlayer player)
     {
@@ -36,67 +42,63 @@ public class PokerGame
     }
     //Class Management
     public void StartGame()
+{
+    OnGameLog?.Invoke("=== Texas Hold'em Poker ===");
+    OnGameLog?.Invoke("1. Play a Game");
+    OnGameLog?.Invoke("2. Exit");
+
+    string? choice;
+    while (true)
     {
-        Console.WriteLine("=== Texas Hold'em Poker ===");
-        Console.WriteLine("1. Play a Game");
-        Console.WriteLine("2. Exit");
-
-        string choice;
-        while (true)
-        {
-            Console.Write("Pilih: ");
-            choice = Console.ReadLine();
-            if (choice == "1" || choice == "2") break;
-            Console.WriteLine("Input tidak valid. Pilih 1 atau 2.");
-        }
-
-        if (choice == "2")
-        {
-            Console.WriteLine("Game berakhir. Terima kasih sudah bermain!");
-            Environment.Exit(0);
-        }
-
-        // --- Input untuk Human ---
-        Console.Write("Masukkan nickname untuk Player 1 (Human): ");
-        string humanName = Console.ReadLine();
-        if (string.IsNullOrWhiteSpace(humanName))
-            humanName = "Player1";
-        AddPlayer(humanName, false);
-
-        // --- Input jumlah bot ---
-        int botCount = 0;
-        while (true)
-        {
-            Console.Write("Masukkan jumlah bot (1-3): ");
-            string input = Console.ReadLine();
-            if (int.TryParse(input, out botCount) && botCount >= 1 && botCount <= 3)
-                break;
-            Console.WriteLine("Input tidak valid. Harus antara 1 sampai 3.");
-        }
-
-        // --- Input nama tiap bot ---
-        for (int i = 1; i <= botCount; i++)
-        {
-            Console.Write($"Masukkan nickname untuk Bot {i}: ");
-            string botName = Console.ReadLine();
-            if (string.IsNullOrWhiteSpace(botName))
-                botName = $"Bot{i}";
-            AddPlayer(botName, true);
-        }
-
-        _players.Clear();
-        _players.AddRange(_table.players);
-
-        OnGameEvent?.Invoke(GameEventType.GameStarted, null);
-
-        if (_players.Count < 2)
-        {
-            Console.WriteLine("Tidak cukup pemain untuk memulai (minimal 2).");
-            return;
-        }
-
-        PlayRound();
+        choice = OnRequestInput?.Invoke("Pilih: ");
+        if (choice == "1" || choice == "2") break;
+        OnGameLog?.Invoke("Input tidak valid. Pilih 1 atau 2.");
     }
+
+    if (choice == "2")
+    {
+        OnGameLog?.Invoke("Game berakhir. Terima kasih sudah bermain!");
+        Environment.Exit(0);
+    }
+
+    // --- Input untuk Human ---
+    string? humanName = OnRequestInput?.Invoke("Masukkan nickname untuk Player 1 (Human): ");
+    if (string.IsNullOrWhiteSpace(humanName))
+        humanName = "Player1";
+    AddPlayer(humanName, false);
+
+    // --- Input jumlah bot ---
+    int botCount = 0;
+    while (true)
+    {
+        botCount = OnRequestNumber?.Invoke("Masukkan jumlah bot (1-3): ") ?? 0;
+        if (botCount >= 1 && botCount <= 3)
+            break;
+        OnGameLog?.Invoke("Input tidak valid. Harus antara 1 sampai 3.");
+    }
+
+    // --- Input nama tiap bot ---
+    for (int i = 1; i <= botCount; i++)
+    {
+        string? botName = OnRequestInput?.Invoke($"Masukkan nickname untuk Bot {i}: ");
+        if (string.IsNullOrWhiteSpace(botName))
+            botName = $"Bot{i}";
+        AddPlayer(botName, true);
+    }
+
+    _players.Clear();
+    _players.AddRange(_table.players);
+
+    OnGameEvent?.Invoke(GameEventType.GameStarted, null);
+
+    if (_players.Count < 2)
+    {
+        OnGameLog?.Invoke("Tidak cukup pemain untuk memulai (minimal 2).");
+        return;
+    }
+
+    PlayRound();
+}
 
     private void RotateBlinds()
     {
@@ -110,7 +112,6 @@ public class PokerGame
         bool running = true;
         while (running)
         {
-            //Console.WriteLine("\n=== Round Baru Dimulai ===");
             ResetDeck();
             ResetForNewRound();
             RotateBlinds();
@@ -232,39 +233,42 @@ public class PokerGame
 
     private void EndRound()
     {
-        //Console.WriteLine("\n=== Ronde selesai ===");
-        OnGameEvent?.Invoke(GameEventType.RoundEnded, null); // <-- trigger event
-        // reset pot
-        _table.Pot.Clear();
-        
+        // 🔸 1. Trigger event ronde berakhir
+        OnGameEvent?.Invoke(GameEventType.RoundEnded, null);
 
-        // eliminasi pemain bangkrut setelah showdown & distribusi pot
+        // 🔸 2. Reset pot
+        _table.Pot.Clear();
+
+        // 🔸 3. Eliminasi pemain yang bangkrut
         var eliminated = _players
-        .Where(p => p.Balance <= 0 || p.Balance < (int)ChipType.White) // White = 10
-        .ToList();
+            .Where(p => p.Balance <= 0 || p.Balance < (int)ChipType.White) // White = 10
+            .ToList();
+
         foreach (var p in eliminated)
             RemovePlayer(p);
 
-        // tampilkan state meja
+        // 🔸 4. Tampilkan state meja (via event log)
         ShowTableState();
         _totalPot = 0;
 
-        // tanya ke player apakah lanjut
-        string choice;
+        // 🔸 5. Tanya ke player apakah lanjut main
+        string? choice;
         while (true)
         {
-            Console.Write("Lanjut main? (1 = Ya, 2 = Keluar): ");
-            choice = Console.ReadLine();
+            choice = OnRequestInput?.Invoke("Lanjut main? (1 = Ya, 2 = Keluar): ");
             if (choice == "1" || choice == "2") break;
-            Console.WriteLine("Input tidak valid. Pilih 1 atau 2.");
+
+            OnGameLog?.Invoke("Input tidak valid. Pilih 1 atau 2.");
         }
 
+        // 🔸 6. Jika keluar, akhiri game
         if (choice == "2")
         {
-            Console.WriteLine("Game berakhir. Terima kasih sudah bermain!");
+            OnGameLog?.Invoke("Game berakhir. Terima kasih sudah bermain!");
             Environment.Exit(0);
         }
     }
+
     private void DistributePot()
     {
         // Ambil semua pemain yang masih aktif
@@ -311,7 +315,7 @@ public class PokerGame
 
     private void UpdatePlayerHandStates(string stage)
     {
-        Console.WriteLine($"\n== Evaluasi Hand ({stage}) ==");
+        OnGameLog?.Invoke($"\n== Evaluasi Hand ({stage}) ==");
 
         foreach (var p in _players)
         {
@@ -325,13 +329,13 @@ public class PokerGame
                 string hole = string.Join(", ", playerCards.Select(c => $"{c.Rank} of {c.Suit}"));
                 string kickerNames = !string.IsNullOrEmpty(result.KickersAsString) ? result.KickersAsString : "-";
 
-                Console.WriteLine($"{p.Name}: {result.Name} (Strength {result.Strength})");
-                Console.WriteLine($"   Hole Cards : {hole}");
-                Console.WriteLine($"   Kickers    : {kickerNames}");
+                OnGameLog?.Invoke($"{p.Name}: {result.Name} (Strength {result.Strength})");
+                OnGameLog?.Invoke($"   Hole Cards : {hole}");
+                OnGameLog?.Invoke($"   Kickers    : {kickerNames}");
             }
             else
             {
-                Console.WriteLine($"{p.Name}: [Cards Hidden]"); //perbedaanya disini
+                OnGameLog?.Invoke($"{p.Name}: [Cards Hidden]"); //perbedaanya disini
             }
         }
     }
@@ -349,17 +353,17 @@ public class PokerGame
         int remaining = 5 - _communityCards.Count;
         if (remaining > 0)
         {
-            Console.WriteLine($"\n-- Dealing remaining {remaining} community card(s) --");
+            OnGameLog?.Invoke($"\n-- Dealing remaining {remaining} community card(s) --");
             DealCommunityCards(remaining);
         }
 
-        Console.WriteLine("Semua pemain sudah All-In → langsung Showdown!");
+        OnGameLog?.Invoke("Semua pemain sudah All-In → langsung Showdown!");
         Showdown();
         DistributePot();
     }
     private void DealCards()
     {
-        Console.WriteLine("\n-- Dealing hole cards --");
+        OnGameLog?.Invoke("\n-- Dealing hole cards --");
         foreach (var p in _players)
         {
             var c1 = DealCardDeck();
@@ -370,18 +374,18 @@ public class PokerGame
             if (p is HumanPlayer)
             {
                 string holeCards = $"{c1.Rank} of {c1.Suit}, {c2.Rank} of {c2.Suit}";
-                Console.WriteLine($"{p.Name} gets: {holeCards}");
+                OnGameLog?.Invoke($"{p.Name} gets: {holeCards}");
             }
             else
             {
-                Console.WriteLine($"{p.Name} gets: [Hidden]");
+                OnGameLog?.Invoke($"{p.Name} gets: [Hidden]"); //
             }
         }
     }
 
     private void DealCommunityCards(int count)
     {
-        Console.WriteLine($"\n-- Dealing {count} community card(s) --");
+        OnGameLog?.Invoke($"\n-- Dealing {count} community card(s) --");
         for (int i = 0; i < count; i++)
             _communityCards.Add(DealCardDeck());
 
@@ -400,12 +404,12 @@ public class PokerGame
 
     private void ShowBoard()//tambahan kelas untuk menampilkan class untuk show card
     {
-        Console.WriteLine("Board:");
-        if (_communityCards.Count == 0) Console.WriteLine("  (empty)");
+        OnGameLog?.Invoke("Board:");
+        if (_communityCards.Count == 0) OnGameLog?.Invoke("  (empty)");
         else
         {
             foreach (var c in _communityCards)
-                Console.WriteLine($"  {c.Rank} of {c.Suit}");
+                OnGameLog?.Invoke($"  {c.Rank} of {c.Suit}");
         }
     }
     private void PostBlinds()
@@ -423,7 +427,7 @@ public class PokerGame
         sb.Balance -= smallAmt;        
         sb.CurrentBet = smallAmt;
         sb.TotalContributed += smallAmt;   
-        Console.WriteLine($"{sb.Name} posts small blind {FormatChips(smallAmt)} (Chips: {FormatChips(sb.Balance)})");
+        OnGameLog?.Invoke($"{sb.Name} posts small blind {FormatChips(smallAmt)} (Chips: {FormatChips(sb.Balance)})");
 
         // Big Blind (special case jika balance kurang dari big blind)
         int bbAmt = Math.Min(_bigBlind, bb.Balance);
@@ -435,11 +439,11 @@ public class PokerGame
 
         if (bbAmt < _bigBlind)
         {
-            Console.WriteLine($"{bb.Name} posts big blind {FormatChips(bbAmt)} (ALL-IN) (Chips: {FormatChips(bb.Balance)})");
+            OnGameLog?.Invoke($"{bb.Name} posts big blind {FormatChips(bbAmt)} (ALL-IN) (Chips: {FormatChips(bb.Balance)})");
         }
         else
         {
-            Console.WriteLine($"{bb.Name} posts big blind {FormatChips(bbAmt)} (Chips: {FormatChips(bb.Balance)})");
+            OnGameLog?.Invoke($"{bb.Name} posts big blind {FormatChips(bbAmt)} (Chips: {FormatChips(bb.Balance)})");
         }
 
         // tetap set currentBet = _bigBlind supaya call minimum tidak turun
@@ -448,7 +452,7 @@ public class PokerGame
 
     private bool BettingRounds()
     {
-        Console.WriteLine("\n-- Betting Round --");
+        OnGameLog?.Invoke("\n-- Betting Round --");
 
         bool isPreFlop = _communityCards.Count == 0;
 
@@ -459,14 +463,14 @@ public class PokerGame
         // Kalau semua sudah all-in → biarkan PlayRound yang reveal board penuh
         if (activePlayers.All(p => p.Balance == 0))
         {
-            Console.WriteLine("Semua pemain sudah All-In → lanjut board penuh & showdown.");
+            OnGameLog?.Invoke("Semua pemain sudah All-In → lanjut board penuh & showdown.");
             return false; // jangan akhiri ronde di sini
         }
 
         // Kalau masih ada 1 pemain aktif dengan chip, sisanya all-in
         if (activeWithChips <= 1 && allInPlayers > 0)
         {
-            Console.WriteLine("Semua lawan sudah All-In → lanjut board penuh & showdown.");
+            OnGameLog?.Invoke("Semua lawan sudah All-In → lanjut board penuh & showdown.");
             return false; // biar PlayRound reveal otomatis
         }
 
@@ -491,7 +495,7 @@ public class PokerGame
 
         if (attempts >= _players.Count)
         {
-            Console.WriteLine("Tidak ada pemain yang bisa bertindak → lanjut showdown.");
+            OnGameLog?.Invoke("Tidak ada pemain yang bisa bertindak → lanjut showdown.");
             return false;
         }
 
@@ -507,7 +511,7 @@ public class PokerGame
             // cek lagi: semua aktif all-in
             if (activePlayers.All(p => p.Balance == 0))
             {
-                Console.WriteLine("Semua pemain sudah All-In → lanjut board penuh & showdown.");
+                OnGameLog?.Invoke("Semua pemain sudah All-In → lanjut board penuh & showdown.");
                 return false; // biar PlayRound reveal
             }
 
@@ -515,11 +519,11 @@ public class PokerGame
             if (activePlayers.Count == 1)
             {
                 var winner = activePlayers.First();
-                Console.WriteLine($"{winner.Name} menang otomatis (semua lawan fold).");
+                OnGameLog?.Invoke($"{winner.Name} menang otomatis (semua lawan fold).");
 
                 int potValue = GetPotValue();
                 AddChipsToPlayerByAmount(winner, potValue);
-                Console.WriteLine($"{winner.Name} receives {FormatChips(potValue)} from pot.");
+                OnGameLog?.Invoke($"{winner.Name} receives {FormatChips(potValue)} from pot.");
                 _table.Pot.Clear();
                 return true; // ronde selesai
             }
@@ -553,27 +557,28 @@ public class PokerGame
     }
 
     private void ProcessPlayerTurn(IPlayer player, PlayerAction action)
-    {
-        int toCall = _currentBet - player.CurrentBet;
+{
+    int toCall = _currentBet - player.CurrentBet;
 
-        switch (action)
-        {
-            case PlayerAction.Fold:
-            if (player == null) return;
+    switch (action)
+    {
+        case PlayerAction.Fold:
             player.IsFolded = true;
             OnGameEvent?.Invoke(GameEventType.PlayerFolded, player);
+            OnGameLog?.Invoke($"{player.Name} folds.");
             break;
 
-            case PlayerAction.Check:
-            // Console.WriteLine($"{player.Name} checks.");   //
+        case PlayerAction.Check:
             OnGameEvent?.Invoke(GameEventType.PlayerChecked, player);
+            OnGameLog?.Invoke($"{player.Name} checks.");
             break;
 
-            case PlayerAction.Call:
+        case PlayerAction.Call:
             if (toCall <= 0)
             {
-                // Console.WriteLine($"{player.Name} checks (no bet to call).");  //
+                // Tidak ada bet yang perlu dipanggil → dianggap Check
                 OnGameEvent?.Invoke(GameEventType.PlayerChecked, player);
+                OnGameLog?.Invoke($"{player.Name} checks (no bet to call).");
             }
             else
             {
@@ -583,100 +588,64 @@ public class PokerGame
                 AddToPot(callAmount);
                 player.Balance -= callAmount;
                 player.CurrentBet += callAmount;
-                player.TotalContributed += callAmount;   
+                player.TotalContributed += callAmount;
 
-                // Console.WriteLine($"{player.Name} calls {FormatChips(callAmount)} (Balance: {player.Balance})"); // ❌ hapus ini
-                // Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}"); // boleh dihapus juga kalau mau full event
                 OnGameEvent?.Invoke(GameEventType.PlayerCalled, player);
+                OnGameLog?.Invoke($"{player.Name} calls {FormatChips(callAmount)} (Balance: {FormatChips(player.Balance)})");
+                OnGameLog?.Invoke($"Pot sekarang = {FormatChips(GetPotValue())}");
             }
             break;
 
-            case PlayerAction.Raise:
-            int minRaise = 10;
-            int maxRaise = player.Balance;
-
-            if (maxRaise <= toCall + minRaise)
+        case PlayerAction.Raise:
             {
-                Console.WriteLine($"{player.Name} tidak cukup balance untuk Raise, otomatis All-In.");
-                goto case PlayerAction.AllIn;
-            }
+                int raiseAmount = OnRequestRaiseAmount?.Invoke(player.Name, toCall, _minRaise)
+                                  ?? (toCall + _minRaise);
 
-            int raiseAmount;
-            if (player is HumanPlayer)
-            {
-                int minRaiseAmount = toCall + minRaise;
-                int maxRaiseAmount = player.Balance;
+                // Validasi nilai raise
+                if (raiseAmount < toCall + _minRaise)
+                    raiseAmount = toCall + _minRaise;
 
-                while (true)
-                {
-                    Console.WriteLine($"{player.Name}, masukkan jumlah Raise (minimal {minRaiseAmount}, maksimal {maxRaiseAmount}, kelipatan 10):");
-                    string input = Console.ReadLine();
+                if (raiseAmount > player.Balance)
+                    raiseAmount = player.Balance;
 
-                    if (!int.TryParse(input, out raiseAmount))
-                    {
-                        Console.WriteLine("Input tidak valid. Harus berupa angka.");
-                        continue;
-                    }
-
-                    if (raiseAmount < minRaiseAmount || raiseAmount > maxRaiseAmount)
-                    {
-                        Console.WriteLine($"Input tidak valid. Harus di antara {minRaiseAmount} dan {maxRaiseAmount}.");
-                        continue;
-                    }
-
-                    int rounded = (int)(Math.Round(raiseAmount / 10.0) * 10);
-                    if (rounded != raiseAmount)
-                    {
-                        Console.WriteLine($"Input {raiseAmount} dibulatkan menjadi {rounded}.");
-                        raiseAmount = rounded;
-                    }
-                    break;
-                    }
-                }
-            else
-            {
-                raiseAmount = _random.Next(toCall + minRaise, maxRaise + 1);
                 raiseAmount = (int)(Math.Round(raiseAmount / 10.0) * 10);
-                
-            }
 
-            AddToPot(raiseAmount);
-            player.Balance -= raiseAmount;
-            if (player.Balance < 0) player.Balance = 0;
-
-            player.CurrentBet += raiseAmount;
-            player.TotalContributed += raiseAmount;   
-            _currentBet = player.CurrentBet;
-
-            string chipText = FormatChips(raiseAmount); //
-            Console.WriteLine($"{player.Name} raises {chipText} (Chips left: {FormatChips(player.Balance)})");
-            Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
-            OnGameEvent?.Invoke(GameEventType.PlayerRaised, player);
-            break;
-
-            case PlayerAction.AllIn:
-            int allInAmount = player.Balance;
-            allInAmount = (int)(Math.Round(allInAmount / 10.0) * 10);
-
-            AddToPot(allInAmount);
-            player.Balance -= allInAmount;
-            if (player.Balance < 0) player.Balance = 0;
-
-            player.CurrentBet += allInAmount;
-            player.TotalContributed += allInAmount;   
-            if (player.CurrentBet > _currentBet)
+                AddToPot(raiseAmount);
+                player.Balance -= raiseAmount;
+                player.CurrentBet += raiseAmount;
+                player.TotalContributed += raiseAmount;
                 _currentBet = player.CurrentBet;
 
-            //Console.WriteLine($"{player.Name} goes ALL-IN with {FormatChips(allInAmount)} (Chips: {FormatChips(player.Balance)})");
-            Console.WriteLine($"Pot sekarang = {FormatChips(GetPotValue())}");
-            OnGameEvent?.Invoke(GameEventType.PlayerAllin, player);
+                OnGameEvent?.Invoke(GameEventType.PlayerRaised, player);
+                OnGameLog?.Invoke($"{player.Name} raises {FormatChips(raiseAmount)} (Chips left: {FormatChips(player.Balance)})");
+                OnGameLog?.Invoke($"Pot sekarang = {FormatChips(GetPotValue())}");
+            }
             break;
-        }
+
+        case PlayerAction.AllIn:
+            {
+                int allInAmount = player.Balance;
+                allInAmount = (int)(Math.Round(allInAmount / 10.0) * 10);
+
+                AddToPot(allInAmount);
+                player.Balance = 0;
+                player.CurrentBet += allInAmount;
+                player.TotalContributed += allInAmount;
+
+                if (player.CurrentBet > _currentBet)
+                    _currentBet = player.CurrentBet;
+
+                OnGameEvent?.Invoke(GameEventType.PlayerAllin, player);
+                OnGameLog?.Invoke($"{player.Name} goes ALL-IN with {FormatChips(allInAmount)}");
+                OnGameLog?.Invoke($"Pot sekarang = {FormatChips(GetPotValue())}");
+            }
+            break;
     }
+}
 
     private void Showdown()
     {
-        Console.WriteLine("\n-- Showdown --");
+        OnGameLog?.Invoke("\n-- Showdown --");
         List<(IPlayer player, HandResult result)> results = new();
 
         // kumpulkan hasil evaluasi hand
@@ -693,9 +662,9 @@ public class PokerGame
             // tampilkan kicker (aman walau kosong)
             string kickerNames = !string.IsNullOrEmpty(result.KickersAsString) ? result.KickersAsString : "-";
 
-            Console.WriteLine($"{p.Name}: {result.Name} (Strength: {result.Strength})");
-            Console.WriteLine($"   Hole Cards : {holeCards}");
-            Console.WriteLine($"   Kickers    : {kickerNames}");
+            OnGameLog?.Invoke($"{p.Name}: {result.Name} (Strength: {result.Strength})");
+            OnGameLog?.Invoke($"   Hole Cards : {holeCards}");
+            OnGameLog?.Invoke($"   Kickers    : {kickerNames}");
         }
 
         // jika semua fold kecuali satu
@@ -703,18 +672,18 @@ public class PokerGame
         if (activePlayers.Count == 1)
         {
             var soleWinner = activePlayers.First();
-            Console.WriteLine($"Winner: {soleWinner.Name} (all others folded)");
+            OnGameLog?.Invoke($"Winner: {soleWinner.Name} (all others folded)");
             var potChips = _table.Pot.ToList();
             _table.Pot.Clear();
             int potValue = potChips.Sum(c => (int)c.Type);
             AddChipsListToPlayer(soleWinner, potChips);
-            Console.WriteLine($"{soleWinner.Name} receives {FormatChips(potValue)} from pot.");
+            OnGameLog?.Invoke($"{soleWinner.Name} receives {FormatChips(potValue)} from pot.");
         }
 
         // kalau tidak ada pemain sama sekali
         if (results.Count == 0)
         {
-            Console.WriteLine("No players in showdown.");
+            OnGameLog?.Invoke("No players in showdown.");
             return;
         }
 
@@ -724,7 +693,7 @@ public class PokerGame
 
         if (bestCandidates == null || bestCandidates.Count == 0)
         {
-            Console.WriteLine("No candidates for winner.");
+            OnGameLog?.Invoke("No candidates for winner.");
             return;
         }
 
@@ -751,11 +720,11 @@ public class PokerGame
         if (winners.Count == 1)
         {
             var winPlayer = winners.First();
-            Console.WriteLine($"Winner: {winPlayer.Name} with {results.First(r => r.player == winPlayer).result.Name}");
+            OnGameLog?.Invoke($"Winner: {winPlayer.Name} with {results.First(r => r.player == winPlayer).result.Name}");
         }
         else
         {
-            Console.WriteLine("Tie between: " + string.Join(", ", winners.Select(w => w.Name)));
+            OnGameLog?.Invoke("Tie between: " + string.Join(", ", winners.Select(w => w.Name)));
         }
     }
 
@@ -1003,13 +972,13 @@ public class PokerGame
     {
         if (_table.players.Count >= 4)
         {
-            Console.WriteLine("Maksimal 4 pemain diperbolehkan di meja.");
+            OnGameLog?.Invoke("Maksimal 4 pemain diperbolehkan di meja.");
             return;
         }
 
         if (_table.players.Any(p => p.Name == name || p.Name == name + " (Bot)"))
         {
-            Console.WriteLine($"Player {name} sudah ada di meja.");
+            OnGameLog?.Invoke($"Player {name} sudah ada di meja.");
             return;
         }
 
@@ -1017,14 +986,14 @@ public class PokerGame
         IPlayer player = isAI ? new AIPlayer(finalName, 1000) : new HumanPlayer(finalName, 1000);
 
         _table.players.Add(player);
-        Console.WriteLine($"{player.Name} bergabung ke meja. Total players: {_table.players.Count}/4");
+        OnGameLog?.Invoke($"{player.Name} bergabung ke meja. Total players: {_table.players.Count}/4");
     }
 
     public void RemovePlayer(IPlayer player)    
     {
         if (_table.players.Remove(player))
         {
-            Console.WriteLine($"{player.Name} keluar dari meja. Total players: {_table.players.Count}/4");
+            OnGameLog?.Invoke($"{player.Name} keluar dari meja. Total players: {_table.players.Count}/4");
 
             // Sesuaikan index blind setelah remove
             if (_table.players.Count > 0)
@@ -1037,14 +1006,14 @@ public class PokerGame
         // Cek kalau semua human sudah habis
         if (!_table.players.Any(p => p is HumanPlayer && p.Balance > 0))
         {
-            Console.WriteLine("Anda sudah kehabisan chip. Game berakhir!");
+            OnGameLog?.Invoke("Anda sudah kehabisan chip. Game berakhir!");
             Environment.Exit(0);
         }
 
         // Tambahan: Cek kalau hanya human tersisa
         if (_table.players.Count == 1 && _table.players.First() is HumanPlayer)
         {
-            Console.WriteLine("You win! Semua bot sudah kalah. Game berakhir!");
+            OnGameLog?.Invoke("You win! Semua bot sudah kalah. Game berakhir!");
             Environment.Exit(0);
         }
     }
@@ -1066,7 +1035,7 @@ public class PokerGame
         _players.Clear();
         _players.AddRange(_table.players);
 
-        //Console.WriteLine("Round baru dimulai.");
+        //OnGameLog?.Invoke("Round baru dimulai.");
         OnGameEvent?.Invoke(GameEventType.RoundStart, null); // <-- trigger event
     }
     public bool PlaceTotalBet(int amount)
@@ -1117,6 +1086,7 @@ public class PokerGame
         int playerChips = player.Chips.Sum(c => (int)c.Type);
         int toCall = currentBet - player.CurrentBet;
 
+        // === 1️⃣ AI decision ===
         if (player is AIPlayer)
         {
             var choices = new List<PlayerAction>();
@@ -1133,53 +1103,24 @@ public class PokerGame
                 if (playerChips >= toCall + minRaise) choices.Add(PlayerAction.Raise);
                 if (playerChips > 0) choices.Add(PlayerAction.AllIn);
             }
-            return choices[_random.Next(choices.Count)];
+
+            var action = choices[_random.Next(choices.Count)];
+            OnGameLog?.Invoke($"{player.Name} (Bot) memilih {action}");
+            return action;
         }
 
-        // Human
-        if (toCall <= 0)
+        // === 2️⃣ Human player ===
+        if (OnRequestDecision != null)
         {
-            string input;
-            while (true)
-            {
-                Console.WriteLine($"{player.Name}, pilih aksi: [1] Check, [2] Raise, [3] AllIn, [4] Fold");
-                input = Console.ReadLine();
-                if (input == "1" || input == "2" || input == "3" || input == "4")
-                    break;
-                Console.WriteLine("Input tidak valid. Harus pilih 1, 2, 3, atau 4.");
-            }
-
-            return input switch
-            {
-                "1" => PlayerAction.Check,
-                "2" => PlayerAction.Raise,
-                "3" => PlayerAction.AllIn,
-                "4" => PlayerAction.Fold,
-                _ => PlayerAction.Check
-            };
+            var decision = OnRequestDecision.Invoke(player);
+            return decision;
         }
-        else
-        {
-            string input;
-            while (true)
-            {
-                Console.WriteLine($"{player.Name}, ada bet {currentBet}. Pilih aksi: [1] Call, [2] Raise, [3] AllIn, [4] Fold");
-                input = Console.ReadLine();
-                if (input == "1" || input == "2" || input == "3" || input == "4")
-                    break;
-                Console.WriteLine("Input tidak valid. Harus pilih 1, 2, 3, atau 4.");
-            }
 
-            return input switch
-            {
-                "1" => PlayerAction.Call,
-                "2" => PlayerAction.Raise,
-                "3" => PlayerAction.AllIn,
-                "4" => PlayerAction.Fold,
-                _ => PlayerAction.Call
-            };
-        }
+        // fallback jika tidak ada handler frontend
+        OnGameLog?.Invoke($"[WARNING] Tidak ada handler untuk input {player.Name}, default Check.");
+        return PlayerAction.Check;
     }
+
     private string FormatChips(int amount)
     {
         if (amount <= 0) return "0";
@@ -1268,7 +1209,7 @@ public class PokerGame
             {
                 int give = share + (i == 0 ? rem : 0); 
                 AddChipsToPlayerByAmount(potWinners[i], give);
-                Console.WriteLine($"{potWinners[i].Name} receives {FormatChips(give)} from pot.");
+                OnGameLog?.Invoke($"{potWinners[i].Name} receives {FormatChips(give)} from pot.");
             }
 
             _table.Pot.Clear();
@@ -1365,7 +1306,7 @@ public class PokerGame
             {
                 int give = share + (i == 0 ? rem : 0); 
                 AddChipsToPlayerByAmount(potWinners[i], give);
-                Console.WriteLine($"{potWinners[i].Name} receives {FormatChips(give)} from side pot.");
+                OnGameLog?.Invoke($"{potWinners[i].Name} receives {FormatChips(give)} from side pot.");
             }
         }
     }
@@ -1392,15 +1333,15 @@ public class PokerGame
     // utility: display table state
     public void ShowTableState()
     {
-        Console.WriteLine("\n=== TABLE STATE ===");
-        Console.WriteLine("Players:");
+        OnGameLog?.Invoke("\n=== TABLE STATE ===");
+        OnGameLog?.Invoke("Players:");
         foreach (var p in _players)
         {
             string chipText = FormatChips(p.Balance);
-            Console.WriteLine($"- {p.Name} | Chips: {chipText} | Folded: {p.IsFolded}");
+            OnGameLog?.Invoke($"- {p.Name} | Chips: {chipText} | Folded: {p.IsFolded}");
         }
-        Console.WriteLine($"Pot value: {FormatChips(_totalPot)}"); // 🔥 gunakan total pot
+        OnGameLog?.Invoke($"Pot value: {FormatChips(_totalPot)}"); //gunakan total pot
         ShowBoard();
-        Console.WriteLine("===================\n");
+        OnGameLog?.Invoke("===================\n");
     }
 }
