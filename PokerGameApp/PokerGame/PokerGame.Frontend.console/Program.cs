@@ -77,38 +77,6 @@ namespace PokerGameApp.FrontendConsole
                 }
             };
 
-            // === 6️⃣ Event status game (Fold, Raise, All-in, dll.) ===
-            game.OnGameEvent += (evt, player) =>
-            {
-                switch (evt)
-                {
-                    case GameEventType.GameStarted:
-                        Console.WriteLine("[EVENT] Game dimulai!");
-                        break;
-                    case GameEventType.RoundStart:
-                        Console.WriteLine("[EVENT] Round baru dimulai.");
-                        break;
-                    case GameEventType.RoundEnded:
-                        Console.WriteLine("[EVENT] Round berakhir.");
-                        break;
-                    case GameEventType.PlayerFolded:
-                        Console.WriteLine($"[EVENT] {player?.Name} melakukan Fold.");
-                        break;
-                    case GameEventType.PlayerRaised:
-                        Console.WriteLine($"[EVENT] {player?.Name} melakukan Raise.");
-                        break;
-                    case GameEventType.PlayerAllin:
-                        Console.WriteLine($"[EVENT] {player?.Name} melakukan All-In!");
-                        break;
-                    case GameEventType.PlayerChecked:
-                        Console.WriteLine($"[EVENT] {player?.Name} melakukan Check.");
-                        break;
-                    case GameEventType.PlayerCalled:
-                        Console.WriteLine($"[EVENT] {player?.Name} melakukan Call.");
-                        break;
-                }
-            };
-
             // === Jalankan game ===
             game.StartGame();
         }

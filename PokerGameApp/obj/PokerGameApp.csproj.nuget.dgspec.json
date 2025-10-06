@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "c:\\Users\\Alfi Karom\\Documents\\bootcampkarom\\PokerGameApp\\PokerGameApp.csproj": {}
+    "C:\\Users\\Alfi Karom\\Documents\\bootcampkarom\\PokerGameApp\\PokerGameApp.csproj": {}
   },
   "projects": {
-    "c:\\Users\\Alfi Karom\\Documents\\bootcampkarom\\PokerGameApp\\PokerGameApp.csproj": {
+    "C:\\Users\\Alfi Karom\\Documents\\bootcampkarom\\PokerGameApp\\PokerGameApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "c:\\Users\\Alfi Karom\\Documents\\bootcampkarom\\PokerGameApp\\PokerGameApp.csproj",
+        "projectUniqueName": "C:\\Users\\Alfi Karom\\Documents\\bootcampkarom\\PokerGameApp\\PokerGameApp.csproj",
         "projectName": "PokerGameApp",
-        "projectPath": "c:\\Users\\Alfi Karom\\Documents\\bootcampkarom\\PokerGameApp\\PokerGameApp.csproj",
+        "projectPath": "C:\\Users\\Alfi Karom\\Documents\\bootcampkarom\\PokerGameApp\\PokerGameApp.csproj",
         "packagesPath": "C:\\Users\\Alfi Karom\\.nuget\\packages\\",
-        "outputPath": "c:\\Users\\Alfi Karom\\Documents\\bootcampkarom\\PokerGameApp\\obj\\",
+        "outputPath": "C:\\Users\\Alfi Karom\\Documents\\bootcampkarom\\PokerGameApp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
