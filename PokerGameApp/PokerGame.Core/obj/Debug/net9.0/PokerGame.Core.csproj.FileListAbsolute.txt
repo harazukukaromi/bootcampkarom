@@ -1,0 +1,15 @@
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\bin\Debug\net9.0\PokerGame.Core.deps.json
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\bin\Debug\net9.0\PokerGame.Core.dll
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\bin\Debug\net9.0\PokerGame.Core.pdb
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\bin\Debug\net9.0\PokerGame.Backend.dll
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\bin\Debug\net9.0\PokerGame.Backend.pdb
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\obj\Debug\net9.0\PokerGame.Core.csproj.AssemblyReference.cache
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\obj\Debug\net9.0\PokerGame.Core.GeneratedMSBuildEditorConfig.editorconfig
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\obj\Debug\net9.0\PokerGame.Core.AssemblyInfoInputs.cache
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\obj\Debug\net9.0\PokerGame.Core.AssemblyInfo.cs
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\obj\Debug\net9.0\PokerGame.Core.csproj.CoreCompileInputs.cache
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\obj\Debug\net9.0\PokerGam.4A707060.Up2Date
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\obj\Debug\net9.0\PokerGame.Core.dll
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\obj\Debug\net9.0\refint\PokerGame.Core.dll
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\obj\Debug\net9.0\PokerGame.Core.pdb
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Core\obj\Debug\net9.0\ref\PokerGame.Core.dll

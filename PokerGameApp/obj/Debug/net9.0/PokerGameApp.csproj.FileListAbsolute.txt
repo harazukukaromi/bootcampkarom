@@ -1,0 +1,19 @@
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\bin\Debug\net9.0\PokerGameApp.exe
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\bin\Debug\net9.0\PokerGameApp.deps.json
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\bin\Debug\net9.0\PokerGameApp.runtimeconfig.json
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\bin\Debug\net9.0\PokerGameApp.dll
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\bin\Debug\net9.0\PokerGameApp.pdb
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\obj\Debug\net9.0\PokerGameApp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\obj\Debug\net9.0\PokerGameApp.AssemblyInfoInputs.cache
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\obj\Debug\net9.0\PokerGameApp.AssemblyInfo.cs
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\obj\Debug\net9.0\PokerGameApp.csproj.CoreCompileInputs.cache
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\obj\Debug\net9.0\PokerGameApp.sourcelink.json
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\obj\Debug\net9.0\PokerGameApp.dll
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\obj\Debug\net9.0\refint\PokerGameApp.dll
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\obj\Debug\net9.0\PokerGameApp.pdb
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\obj\Debug\net9.0\PokerGameApp.genruntimeconfig.cache
+C:\Users\Alfi Karom\Documents\bootcampkarom\PokerGameApp\obj\Debug\net9.0\ref\PokerGameApp.dll
+E:\code\bootcampkarom-main\PokerGameApp\obj\Debug\net9.0\PokerGameApp.GeneratedMSBuildEditorConfig.editorconfig
+E:\code\bootcampkarom-main\PokerGameApp\obj\Debug\net9.0\PokerGameApp.AssemblyInfoInputs.cache
+E:\code\bootcampkarom-main\PokerGameApp\obj\Debug\net9.0\PokerGameApp.AssemblyInfo.cs
+E:\code\bootcampkarom-main\PokerGameApp\obj\Debug\net9.0\PokerGameApp.csproj.CoreCompileInputs.cache

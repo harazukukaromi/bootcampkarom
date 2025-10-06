@@ -1,0 +1,56 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "PokerGame.ConsoleUI/1.0.0": {
+        "dependencies": {
+          "PokerGame.Backend": "1.0.0",
+          "PokerGame.Core": "1.0.0"
+        },
+        "runtime": {
+          "PokerGame.ConsoleUI.dll": {}
+        }
+      },
+      "PokerGame.Backend/1.0.0": {
+        "runtime": {
+          "PokerGame.Backend.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "PokerGame.Core/1.0.0": {
+        "dependencies": {
+          "PokerGame.Backend": "1.0.0"
+        },
+        "runtime": {
+          "PokerGame.Core.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "PokerGame.ConsoleUI/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "PokerGame.Backend/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "PokerGame.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "version": 3,
+  "targets": {
+    "net9.0": {
+      "PokerGame.Backend/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/PokerGame.Backend.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/PokerGame.Backend.dll": {}
+        }
+      },
+      "PokerGame.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "PokerGame.Backend": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/PokerGame.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/PokerGame.Core.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "PokerGame.Backend/1.0.0": {
+      "type": "project",
+      "path": "../PokerGame.Backend/PokerGame.Backend.csproj",
+      "msbuildProject": "../PokerGame.Backend/PokerGame.Backend.csproj"
+    },
+    "PokerGame.Core/1.0.0": {
+      "type": "project",
+      "path": "../PokerGame.Core/PokerGame.Core.csproj",
+      "msbuildProject": "../PokerGame.Core/PokerGame.Core.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net9.0": [
+      "PokerGame.Backend >= 1.0.0",
+      "PokerGame.Core >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\alfik\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "E:\\code\\bootcampkarom-main\\PokerGameApp\\PokerGame.ConsoleUI\\PokerGame.ConsoleUI.csproj",
+      "projectName": "PokerGame.ConsoleUI",
+      "projectPath": "E:\\code\\bootcampkarom-main\\PokerGameApp\\PokerGame.ConsoleUI\\PokerGame.ConsoleUI.csproj",
+      "packagesPath": "C:\\Users\\alfik\\.nuget\\packages\\",
+      "outputPath": "E:\\code\\bootcampkarom-main\\PokerGameApp\\PokerGame.ConsoleUI\\obj\\",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\alfik\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net9.0"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "projectReferences": {
+            "E:\\code\\bootcampkarom-main\\PokerGameApp\\PokerGame.Backend\\PokerGame.Backend.csproj": {
+              "projectPath": "E:\\code\\bootcampkarom-main\\PokerGameApp\\PokerGame.Backend\\PokerGame.Backend.csproj"
+            },
+            "E:\\code\\bootcampkarom-main\\PokerGameApp\\PokerGame.Core\\PokerGame.Core.csproj": {
+              "projectPath": "E:\\code\\bootcampkarom-main\\PokerGameApp\\PokerGame.Core\\PokerGame.Core.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.300"
+    },
+    "frameworks": {
+      "net9.0": {
+        "targetAlias": "net9.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

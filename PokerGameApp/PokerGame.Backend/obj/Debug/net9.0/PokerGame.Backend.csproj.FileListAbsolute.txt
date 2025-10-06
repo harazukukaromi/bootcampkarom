@@ -1,0 +1,11 @@
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\bin\Debug\net9.0\PokerGame.Backend.deps.json
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\bin\Debug\net9.0\PokerGame.Backend.dll
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\bin\Debug\net9.0\PokerGame.Backend.pdb
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\obj\Debug\net9.0\PokerGame.Backend.GeneratedMSBuildEditorConfig.editorconfig
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\obj\Debug\net9.0\PokerGame.Backend.AssemblyInfoInputs.cache
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\obj\Debug\net9.0\PokerGame.Backend.AssemblyInfo.cs
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\obj\Debug\net9.0\PokerGame.Backend.csproj.CoreCompileInputs.cache
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\obj\Debug\net9.0\PokerGame.Backend.dll
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\obj\Debug\net9.0\refint\PokerGame.Backend.dll
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\obj\Debug\net9.0\PokerGame.Backend.pdb
+E:\code\bootcampkarom-main\PokerGameApp\PokerGame.Backend\obj\Debug\net9.0\ref\PokerGame.Backend.dll
