@@ -241,7 +241,7 @@ public class PokerGame
 
         // eliminasi pemain bangkrut setelah showdown & distribusi pot
         var eliminated = _players
-        .Where(p => p.Balance <= 0 || p.Balance < (int)ChipType.White) // 💡 White = 10
+        .Where(p => p.Balance <= 0 || p.Balance < (int)ChipType.White) // White = 10
         .ToList();
         foreach (var p in eliminated)
             RemovePlayer(p);
@@ -332,7 +332,7 @@ public class PokerGame
             }
             else
             {
-                Console.WriteLine($"{p.Name}: [Cards Hidden]");
+                Console.WriteLine($"{p.Name}: [Cards Hidden]"); //perbedaanya disini
             }
         }
     }
