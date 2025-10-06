@@ -42,63 +42,63 @@ public class PokerGame
     }
     //Class Management
     public void StartGame()
-{
-    OnGameLog?.Invoke("=== Texas Hold'em Poker ===");
-    OnGameLog?.Invoke("1. Play a Game");
-    OnGameLog?.Invoke("2. Exit");
-
-    string? choice;
-    while (true)
     {
-        choice = OnRequestInput?.Invoke("Pilih: ");
-        if (choice == "1" || choice == "2") break;
-        OnGameLog?.Invoke("Input tidak valid. Pilih 1 atau 2.");
+        OnGameLog?.Invoke("=== Texas Hold'em Poker ===");
+        OnGameLog?.Invoke("1. Play a Game");
+        OnGameLog?.Invoke("2. Exit");
+
+        string? choice;
+        while (true)
+        {
+            choice = OnRequestInput?.Invoke("Pilih: ");
+            if (choice == "1" || choice == "2") break;
+            OnGameLog?.Invoke("Input tidak valid. Pilih 1 atau 2.");
+        }
+
+        if (choice == "2")
+        {
+            OnGameLog?.Invoke("Game berakhir. Terima kasih sudah bermain!");
+            Environment.Exit(0);
+        }
+
+        // --- Input untuk Human ---
+        string? humanName = OnRequestInput?.Invoke("Masukkan nickname untuk Player 1 (Human): ");
+        if (string.IsNullOrWhiteSpace(humanName))
+            humanName = "Player1";
+        AddPlayer(humanName, false);
+
+        // --- Input jumlah bot ---
+        int botCount = 0;
+        while (true)
+        {
+            botCount = OnRequestNumber?.Invoke("Masukkan jumlah bot (1-3): ") ?? 0;
+            if (botCount >= 1 && botCount <= 3)
+                break;
+            OnGameLog?.Invoke("Input tidak valid. Harus antara 1 sampai 3.");
+        }
+
+        // --- Input nama tiap bot ---
+        for (int i = 1; i <= botCount; i++)
+        {
+            string? botName = OnRequestInput?.Invoke($"Masukkan nickname untuk Bot {i}: ");
+            if (string.IsNullOrWhiteSpace(botName))
+                botName = $"Bot{i}";
+            AddPlayer(botName, true);
+        }
+
+        _players.Clear();
+        _players.AddRange(_table.players);
+
+        OnGameEvent?.Invoke(GameEventType.GameStarted, null);
+
+        if (_players.Count < 2)
+        {
+            OnGameLog?.Invoke("Tidak cukup pemain untuk memulai (minimal 2)."); // jadi jika playe kurang dari 2 maka akan failed
+            return;
+        }
+
+        PlayRound();
     }
-
-    if (choice == "2")
-    {
-        OnGameLog?.Invoke("Game berakhir. Terima kasih sudah bermain!");
-        Environment.Exit(0);
-    }
-
-    // --- Input untuk Human ---
-    string? humanName = OnRequestInput?.Invoke("Masukkan nickname untuk Player 1 (Human): ");
-    if (string.IsNullOrWhiteSpace(humanName))
-        humanName = "Player1";
-    AddPlayer(humanName, false);
-
-    // --- Input jumlah bot ---
-    int botCount = 0;
-    while (true)
-    {
-        botCount = OnRequestNumber?.Invoke("Masukkan jumlah bot (1-3): ") ?? 0;
-        if (botCount >= 1 && botCount <= 3)
-            break;
-        OnGameLog?.Invoke("Input tidak valid. Harus antara 1 sampai 3.");
-    }
-
-    // --- Input nama tiap bot ---
-    for (int i = 1; i <= botCount; i++)
-    {
-        string? botName = OnRequestInput?.Invoke($"Masukkan nickname untuk Bot {i}: ");
-        if (string.IsNullOrWhiteSpace(botName))
-            botName = $"Bot{i}";
-        AddPlayer(botName, true);
-    }
-
-    _players.Clear();
-    _players.AddRange(_table.players);
-
-    OnGameEvent?.Invoke(GameEventType.GameStarted, null);
-
-    if (_players.Count < 2)
-    {
-        OnGameLog?.Invoke("Tidak cukup pemain untuk memulai (minimal 2).");
-        return;
-    }
-
-    PlayRound();
-}
 
     private void RotateBlinds()
     {
