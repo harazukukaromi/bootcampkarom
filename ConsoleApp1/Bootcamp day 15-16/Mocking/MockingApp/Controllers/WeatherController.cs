@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Mocking.Services;
+using MockingApp.Services;
 
-namespace Mocking.Controllers
+namespace MockingApp.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -22,3 +22,4 @@ namespace Mocking.Controllers
         }
     }
 }
+

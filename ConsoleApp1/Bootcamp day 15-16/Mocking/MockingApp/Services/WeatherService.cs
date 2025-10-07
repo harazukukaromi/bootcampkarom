@@ -1,4 +1,4 @@
-namespace Mocking.Services
+namespace MockingApp.Services
 {
     public interface IWeatherService
     {
