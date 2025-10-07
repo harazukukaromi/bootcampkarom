@@ -1,0 +1,9 @@
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ProductApi.csproj.AssemblyReference.cache
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\rpswa.dswa.cache.json
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ProductApi.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ProductApi.AssemblyInfoInputs.cache
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ProductApi.AssemblyInfo.cs
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ProductApi.csproj.CoreCompileInputs.cache
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ProductApi.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ProductApi.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ProductApi.sourcelink.json
