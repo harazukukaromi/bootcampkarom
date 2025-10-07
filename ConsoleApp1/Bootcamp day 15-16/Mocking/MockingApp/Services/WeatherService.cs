@@ -1,15 +1,10 @@
 namespace MockingApp.Services
 {
-    public interface IWeatherService
-    {
-        string GetTodayWeather();
-    }
-
     public class WeatherService : IWeatherService
     {
-        public string GetTodayWeather()
+        public IEnumerable<string> GetWeatherForecast()
         {
-            return "Sunny";
+            return new List<string> { "Sunny", "Cloudy", "Rainy" };
         }
     }
 }

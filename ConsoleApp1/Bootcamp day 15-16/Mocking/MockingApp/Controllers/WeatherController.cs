@@ -4,7 +4,7 @@ using MockingApp.Services;
 namespace MockingApp.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class WeatherController : ControllerBase
     {
         private readonly IWeatherService _weatherService;
@@ -14,12 +14,13 @@ namespace MockingApp.Controllers
             _weatherService = weatherService;
         }
 
-        [HttpGet("today")]
-        public IActionResult GetTodayWeather()
+        [HttpGet]
+        public IActionResult GetWeather()
         {
-            var result = _weatherService.GetTodayWeather();
-            return Ok(result);
+            var forecast = _weatherService.GetWeatherForecast();
+            return Ok(forecast);
         }
     }
 }
+
 
