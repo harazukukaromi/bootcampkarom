@@ -1,7 +1,6 @@
 using Microsoft.OpenApi.Models;
 using ProductApi.Services;
 
-var builder = WebApplication.CreateBuilder(args);
 
 // Daftarkan ProductService sebagai dependency injection
 builder.Services.AddSingleton<ProductService>();
