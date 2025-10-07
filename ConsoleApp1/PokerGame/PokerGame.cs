@@ -1,4 +1,4 @@
-using System;
+/*using System;
 using System.Collections.Generic;
 using System.Dynamic;
 //enum
@@ -825,6 +825,7 @@ public class PokerGame
             {
                 raiseAmount = _random.Next(toCall + minRaise, maxRaise + 1);
                 raiseAmount = (int)(Math.Round(raiseAmount / 10.0) * 10);
+                
             }
 
             AddToPot(raiseAmount);
@@ -1235,6 +1236,8 @@ public class PokerGame
             Environment.Exit(0);
         }
     }
+    public void AddCard(ICard card) => _communityCards.Add(card);
+    public void ClearCard() => _communityCards.Clear();
     private void ResetForNewRound()
     {
         _communityCards.Clear();
@@ -1245,7 +1248,7 @@ public class PokerGame
             p.IsFolded = false;
             p.CurrentBet = 0;
             p.Hand.Cards.Clear();
-            p.TotalContributed = 0; 
+            p.TotalContributed = 0;
         }
 
         _players.Clear();
@@ -1283,7 +1286,7 @@ public class PokerGame
         while (n > 1)
         {
             n--;
-            int k = _random.Next(n + 1);
+            int k = _random.Next(n +1);
             (deck[k], deck[n]) = (deck[n], deck[k]);
         }
     }
@@ -1398,30 +1401,6 @@ public class PokerGame
             .ToList();
 
         return string.Join(" + ", grouped) + $" ({amount})";
-    }
-
-
-    private List<Chip> RemoveChipsFromPlayer(IPlayer player, int amount)
-    {
-        var removed = new List<Chip>();
-
-        // ambil maksimal sesuai balance pemain
-        int toTake = Math.Min(amount, player.Balance);
-        if (toTake <= 0) return removed;
-
-        // kurangi balance langsung
-        player.Balance -= toTake;
-        if (player.Balance < 0) player.Balance = 0;
-
-        // buat chips yang mewakili jumlah yang diambil (greedy: terbesar dulu)
-        int remaining = toTake;
-        while (remaining >= (int)ChipType.Black) { removed.Add(new Chip(ChipType.Black)); remaining -= (int)ChipType.Black; }
-        while (remaining >= (int)ChipType.Green) { removed.Add(new Chip(ChipType.Green)); remaining -= (int)ChipType.Green; }
-        while (remaining >= (int)ChipType.Red) { removed.Add(new Chip(ChipType.Red)); remaining -= (int)ChipType.Red; }
-        while (remaining >= (int)ChipType.White) { removed.Add(new Chip(ChipType.White)); remaining -= (int)ChipType.White; }
-
-        // Jika ada sisa negatif (seharusnya tidak), kita abaikan — but toTake sudah dikalkulasi.
-        return removed;
     }
 
     private void AddChipsListToPot(IEnumerable<Chip> chips)
@@ -1675,13 +1654,8 @@ class Program
             }
         };
 
-        // 👉 Panggil langsung menu utama dari StartGame
+        //Panggil langsung menu utama dari StartGame
         game.StartGame();
     }
 }
-
-
-    
-
-
-
+/*
