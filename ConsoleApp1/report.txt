@@ -1,0 +1,7 @@
+Sales Report:
+-----------------
+Laptop: Rp1.500,00
+Mouse: Rp25,50
+Keyboard: Rp45,99
+-----------------
+Total: Rp1.571,49
