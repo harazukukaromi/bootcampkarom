@@ -17,6 +17,9 @@ C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\bin\Debug\net9.0\ProductA
 C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\bin\Debug\net9.0\ProductApi.pdb
 C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\bin\Debug\net9.0\Microsoft.AspNetCore.OpenApi.dll
 C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\bin\Debug\net9.0\Microsoft.OpenApi.dll
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
 C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\rjimswa.dswa.cache.json
 C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\rjsmrazor.dswa.cache.json
 C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\rjsmcshtml.dswa.cache.json
@@ -31,6 +34,3 @@ C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\refint\P
 C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ProductApi.pdb
 C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ProductApi.genruntimeconfig.cache
 C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\obj\Debug\net9.0\ref\ProductApi.dll
-C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
-C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
-C:\Users\Alfi Karom\Documents\bootcampkarom\ProductApi\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
