@@ -1,10 +1,10 @@
 using Xunit;
 using Moq;
-using Mocking.Services;
-using Mocking.Controllers;
+using MockingApp.Controllers;
+using MockingApp.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Mocking.Tests
+namespace MockingApp.Tests
 {
     public class WeatherControllerTests
     {

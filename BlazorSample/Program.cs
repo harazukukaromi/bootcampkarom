@@ -1,4 +1,4 @@
-    using BlazorSample.Components;
+using BlazorSample.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
