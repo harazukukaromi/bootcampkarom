@@ -1,27 +1,57 @@
 ﻿using ShopApp.Data;
 using ShopApp.Services;
-using ShopApp.Models;
+using ShopApp.Logging;
+using Serilog;
 
-using var db = new AppDbContext();
-
-// Reset dan seed database
-DatabaseInitializer.ResetAndSeed(db);
-
-// Ambil dan tampilkan data
-var categories = db.Categories
-    .Select(c => new
-    {
-        c.Id,
-        c.Name,
-        Products = c.Products.Select(p => new { p.Id, p.Name, p.Price })
-    })
-    .ToList();
-
-foreach (var c in categories)
+class Program
 {
-    Console.WriteLine($"\nKategori: {c.Name}");
-    foreach (var p in c.Products)
+    static void Main(string[] args)
     {
-        Console.WriteLine($"  - {p.Id}: {p.Name} (Rp{p.Price})");
+        // 🔹 Inisialisasi Serilog dari folder Logging
+        LoggingConfiguration.InitializeLogger();
+
+        try
+        {
+            Log.Information("🚀 Aplikasi ShopApp dimulai...");
+
+            using var db = new AppDbContext();
+            db.Database.EnsureCreated();
+
+            DatabaseInitializer.ResetAndSeed(db);
+
+
+            var categories = db.Categories
+                .Select(c => new
+                {
+                    c.Name,
+                    Products = c.Products.Select(p => new
+                    {
+                        p.Name,
+                        p.Price,
+                        Stock = p.ProductStock != null ? p.ProductStock.Quantity : 0
+                    })
+                })
+                .ToList();
+
+            foreach (var c in categories)
+            {
+                Log.Information($"📦 Kategori: {c.Name}");
+                foreach (var p in c.Products)
+                {
+                    Log.Information($"  - {p.Name} (Rp{p.Price}) | Stok: {p.Stock}");
+                }
+            }
+
+            Log.Information("✅ Semua data berhasil ditampilkan");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "❌ Terjadi kesalahan fatal pada aplikasi.");
+        }
+        finally
+        {
+            Log.CloseAndFlush();
+        }
     }
 }
+

@@ -1,26 +1,31 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Serilog;
 using ShopApp.Models;
 
-namespace ShopApp.Data;
-
-public class AppDbContext : DbContext
+namespace ShopApp.Data
 {
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<Product> Products { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options.UseSqlite("Data Source=shop.db");
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    public class AppDbContext : DbContext
     {
-        // Konfigurasi tambahan
-        modelBuilder.Entity<Category>()
-            .Property(c => c.Name)
-            .HasMaxLength(100)
-            .IsRequired();
+        public static readonly ILoggerFactory LoggerFactoryInstance =
+            Microsoft.Extensions.Logging.LoggerFactory.Create(builder =>
+            {
+                builder.AddSerilog(dispose: true);
+            });
 
-        modelBuilder.Entity<Product>()
-            .Property(p => p.Price)
-            .HasPrecision(18, 2);
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder
+                .UseSqlite("Data Source=shop.db")
+                .UseLoggerFactory(LoggerFactoryInstance)
+                .EnableSensitiveDataLogging();
+        }
+
+        public DbSet<Category> Categories => Set<Category>();
+        public DbSet<Product> Products => Set<Product>();
+        public DbSet<ProductStock> ProductStocks => Set<ProductStock>();
+        public DbSet<ProductDetail> ProductDetails => Set<ProductDetail>();
+        public DbSet<Supplier> Suppliers => Set<Supplier>();
     }
 }
+

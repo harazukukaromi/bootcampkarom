@@ -1,10 +1,12 @@
 namespace ShopApp.Models
 {
-    public class Category
+    public class Supplier
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        //relationsip one to many
+
+        // relationship many to many
         public ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }
+
