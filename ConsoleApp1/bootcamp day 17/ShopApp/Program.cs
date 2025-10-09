@@ -42,11 +42,11 @@ class Program
                 }
             }
 
-            Log.Information(" Semua data berhasil ditampilkan");
+            Log.Information("Semua data berhasil ditampilkan");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, " Terjadi kesalahan fatal pada aplikasi.");
+            Log.Error(ex, "Terjadi kesalahan fatal pada aplikasi.");
         }
         finally
         {
