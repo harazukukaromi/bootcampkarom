@@ -12,7 +12,7 @@ class Program
 
         try
         {
-            Log.Information("🚀 Aplikasi ShopApp dimulai...");
+            Log.Information(" Aplikasi ShopApp dimulai...");
 
             using var db = new AppDbContext();
             db.Database.EnsureCreated();
@@ -35,18 +35,18 @@ class Program
 
             foreach (var c in categories)
             {
-                Log.Information($"📦 Kategori: {c.Name}");
+                Log.Information($" Kategori: {c.Name}");
                 foreach (var p in c.Products)
                 {
                     Log.Information($"  - {p.Name} (Rp{p.Price}) | Stok: {p.Stock}");
                 }
             }
 
-            Log.Information("✅ Semua data berhasil ditampilkan");
+            Log.Information(" Semua data berhasil ditampilkan");
         }
         catch (Exception ex)
         {
-            Log.Error(ex, "❌ Terjadi kesalahan fatal pada aplikasi.");
+            Log.Error(ex, " Terjadi kesalahan fatal pada aplikasi.");
         }
         finally
         {
