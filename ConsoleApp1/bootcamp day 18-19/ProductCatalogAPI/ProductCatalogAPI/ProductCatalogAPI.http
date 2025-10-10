@@ -20,7 +20,7 @@ Content-Type: application/json
 }
 
 ### Update product
-PUT https://localhost:7xxx/api/products/1
+PUT http://localhost:5238/api/products/7
 Content-Type: application/json
 
 {
