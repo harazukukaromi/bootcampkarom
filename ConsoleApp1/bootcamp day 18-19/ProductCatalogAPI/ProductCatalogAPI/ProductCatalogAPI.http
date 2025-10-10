@@ -1,0 +1,33 @@
+### Get all products
+GET http://localhost:5238/api/products
+
+### Get product by ID
+GET http://localhost:5238/api/products/1
+
+### Search products
+GET http://localhost:5238/api/products?search=smartphone
+
+### Create new product
+POST http://localhost:5238/api/products
+Content-Type: application/json
+
+{
+  "name": "New Product",
+  "description": "Product description",
+  "price": 99.99,
+  "stockQuantity": 10,
+  "categoryId": 1
+}
+
+### Update product
+PUT https://localhost:7xxx/api/products/1
+Content-Type: application/json
+
+{
+  "name": "Updated Product",
+  "description": "Updated description",
+  "price": 129.99,
+  "stockQuantity": 15,
+  "categoryId": 1,
+  "isActive": true
+}

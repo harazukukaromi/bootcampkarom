@@ -1,0 +1,21 @@
+@PenjualanBarangApi_HostAddress = http://localhost:5291
+
+### GET semua barang
+GET {{PenjualanBarangApi_HostAddress}}/api/products
+Accept: application/json
+
+### POST menambah barang baru
+POST {{PenjualanBarangApi_HostAddress}}/api/products
+Content-Type: application/json
+Accept: application/json
+
+{
+  "name": "Bango",
+  "price": 5000,
+  "stock": 3
+}
+
+### DELETE barang dengan ID tertentu (misalnya 1)
+DELETE {{PenjualanBarangApi_HostAddress}}/api/products/1
+Accept: application/json
+

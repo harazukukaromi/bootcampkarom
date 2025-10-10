@@ -1,0 +1,156 @@
+@model IEnumerable<StudentManagementMVC.Models.Grade>
+@{
+    ViewData["Title"] = "Student Grades";
+    var student = ViewBag.Student as StudentManagementMVC.Models.Student;
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-chart-bar"></i> Grades for @student.Name</h2>
+            <p class="text-muted">@student.Branch - Section @student.Section</p>
+        </div>
+        <a asp-action="AddGrade" asp-route-id="@student.StudentID" class="btn btn-success">
+            <i class="fas fa-plus"></i> Add New Grade
+        </a>
+    </div>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">Students</a></li>
+            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@student.StudentID">@student.Name</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Grades</li>
+        </ol>
+    </nav>
+
+    @if (Model.Any())
+    {
+        <!-- Grade Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Grades</h5>
+                        <h3 class="text-primary">@Model.Count()</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Average Grade</h5>
+                        <h3 class="text-success">@Model.Average(g => g.GradeValue).ToString("F1")%</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Highest Grade</h5>
+                        <h3 class="text-warning">@Model.Max(g => g.GradeValue).ToString("F1")%</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Subjects</h5>
+                        <h3 class="text-info">@Model.Select(g => g.Subject).Distinct().Count()</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grades Table -->
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Subject</th>
+                            <th>Grade (%)</th>
+                            <th>Letter Grade</th>
+                            <th>Date Recorded</th>
+                            <th>Comments</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var grade in Model.OrderByDescending(g => g.GradeDate))
+                        {
+                            <tr>
+                                <td><strong>@grade.Subject</strong></td>
+                                <td>
+                                    <span class="fs-5">@grade.GradeValue.ToString("F1")%</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-@(grade.GradeValue >= 90 ? "success" : 
+                                                          grade.GradeValue >= 80 ? "primary" : 
+                                                          grade.GradeValue >= 70 ? "warning" : "danger") fs-6">
+                                        @grade.LetterGrade
+                                    </span>
+                                </td>
+                                <td>@grade.GradeDate.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(grade.Comments))
+                                    {
+                                        <span class="text-muted">@(grade.Comments.Length > 50 ? grade.Comments.Substring(0, 50) + "..." : grade.Comments)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No comments</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-info" 
+                                                title="View Details" data-bs-toggle="tooltip">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning" 
+                                                title="Edit Grade" data-bs-toggle="tooltip">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                title="Delete Grade" data-bs-toggle="tooltip">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">
+            <h4><i class="fas fa-info-circle"></i> No Grades Yet</h4>
+            <p>This student does not have any grades recorded yet.</p>
+            <a asp-action="AddGrade" asp-route-id="@student.StudentID" class="btn btn-success">
+                <i class="fas fa-plus"></i> Add First Grade
+            </a>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-action="Details" asp-route-id="@student.StudentID" class="btn btn-info me-2">
+            <i class="fas fa-user"></i> Back to Student Details
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-list"></i> Back to Students List
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Initialize Bootstrap tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+}

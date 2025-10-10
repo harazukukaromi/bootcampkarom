@@ -1,0 +1,158 @@
+@model StudentManagementMVC.Models.Grade
+@{
+    ViewData["Title"] = "Add Grade";
+    var student = ViewBag.Student as StudentManagementMVC.Models.Student;
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-plus"></i> Add Grade for @student.Name</h5>
+                    <small>@student.Branch - Section @student.Section</small>
+                </div>
+                <div class="card-body">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a asp-action="Index">Students</a></li>
+                            <li class="breadcrumb-item"><a asp-action="Details" asp-route-id="@student.StudentID">@student.Name</a></li>
+                            <li class="breadcrumb-item"><a asp-action="Grades" asp-route-id="@student.StudentID">Grades</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Add Grade</li>
+                        </ol>
+                    </nav>
+
+                    <form asp-action="AddGrade" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="StudentID" />
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Subject" class="form-label">Subject *</label>
+                                    <select asp-for="Subject" class="form-select">
+                                        <option value="">-- Select Subject --</option>
+                                        <option value="Mathematics">Mathematics</option>
+                                        <option value="Physics">Physics</option>
+                                        <option value="Chemistry">Chemistry</option>
+                                        <option value="Biology">Biology</option>
+                                        <option value="Computer Science">Computer Science</option>
+                                        <option value="Data Structures">Data Structures</option>
+                                        <option value="Web Development">Web Development</option>
+                                        <option value="Database Systems">Database Systems</option>
+                                        <option value="Software Engineering">Software Engineering</option>
+                                        <option value="English">English</option>
+                                        <option value="Business Studies">Business Studies</option>
+                                        <option value="Economics">Economics</option>
+                                        <option value="History">History</option>
+                                        <option value="Geography">Geography</option>
+                                    </select>
+                                    <span asp-validation-for="Subject" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="GradeValue" class="form-label">Grade (0-100) *</label>
+                                    <input asp-for="GradeValue" type="number" step="0.1" min="0" max="100" 
+                                           class="form-control" placeholder="Enter grade percentage" />
+                                    <span asp-validation-for="GradeValue" class="text-danger"></span>
+                                    <div class="form-text">Enter a value between 0 and 100</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="GradeDate" class="form-label">Date Recorded *</label>
+                                    <input asp-for="GradeDate" type="date" class="form-control" 
+                                           value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                                    <span asp-validation-for="GradeDate" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label class="form-label">Estimated Letter Grade</label>
+                                    <div class="form-control bg-light" id="letterGradePreview">
+                                        Enter a grade to see letter grade
+                                    </div>
+                                    <div class="form-text">This will be calculated automatically</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Comments" class="form-label">Comments (Optional)</label>
+                            <textarea asp-for="Comments" class="form-control" rows="3" 
+                                      placeholder="Add any additional comments about this grade..."></textarea>
+                            <span asp-validation-for="Comments" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a asp-action="Grades" asp-route-id="@student.StudentID" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-success">Add Grade</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Real-time letter grade calculation
+        document.getElementById('GradeValue').addEventListener('input', function() {
+            var gradeValue = parseFloat(this.value);
+            var letterGradeElement = document.getElementById('letterGradePreview');
+            
+            if (isNaN(gradeValue) || gradeValue < 0 || gradeValue > 100) {
+                letterGradeElement.innerHTML = 'Enter a valid grade (0-100)';
+                letterGradeElement.className = 'form-control bg-light';
+                return;
+            }
+            
+            var letterGrade = '';
+            var badgeClass = '';
+            
+            if (gradeValue >= 97) {
+                letterGrade = 'A+';
+                badgeClass = 'bg-success';
+            } else if (gradeValue >= 93) {
+                letterGrade = 'A';
+                badgeClass = 'bg-success';
+            } else if (gradeValue >= 90) {
+                letterGrade = 'A-';
+                badgeClass = 'bg-success';
+            } else if (gradeValue >= 87) {
+                letterGrade = 'B+';
+                badgeClass = 'bg-primary';
+            } else if (gradeValue >= 83) {
+                letterGrade = 'B';
+                badgeClass = 'bg-primary';
+            } else if (gradeValue >= 80) {
+                letterGrade = 'B-';
+                badgeClass = 'bg-primary';
+            } else if (gradeValue >= 77) {
+                letterGrade = 'C+';
+                badgeClass = 'bg-warning';
+            } else if (gradeValue >= 73) {
+                letterGrade = 'C';
+                badgeClass = 'bg-warning';
+            } else if (gradeValue >= 70) {
+                letterGrade = 'C-';
+                badgeClass = 'bg-warning';
+            } else if (gradeValue >= 67) {
+                letterGrade = 'D+';
+                badgeClass = 'bg-secondary';
+            } else if (gradeValue >= 60) {
+                letterGrade = 'D';
+                badgeClass = 'bg-secondary';
+            } else {
+                letterGrade = 'F';
+                badgeClass = 'bg-danger';
+            }
+            
+            letterGradeElement.innerHTML = '<span class="badge ' + badgeClass + ' fs-6">' + letterGrade + '</span>';
+            letterGradeElement.className = 'form-control bg-light d-flex align-items-center';
+        });
+    </script>
+}

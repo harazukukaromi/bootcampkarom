@@ -1,0 +1,102 @@
+@model StudentManagementMVC.Models.Student
+@{
+    ViewData["Title"] = "Student Details";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-user"></i> Student Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Student ID:</strong></td>
+                                    <td>@Model.StudentID</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Full Name:</strong></td>
+                                    <td>@Model.Name</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Gender:</strong></td>
+                                    <td>@Model.Gender</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td><a href="mailto:@Model.Email">@Model.Email</a></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Branch/Major:</strong></td>
+                                    <td>@Model.Branch</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Section:</strong></td>
+                                    <td>@Model.Section</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Enrollment Date:</strong></td>
+                                    <td>@Model.EnrollmentDate.ToString("MMMM dd, yyyy")</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Total Grades:</strong></td>
+                                    <td><span class="badge bg-success">@Model.Grades.Count()</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    @if (Model.Grades.Any())
+                    {
+                        <hr />
+                        <h6><i class="fas fa-chart-bar"></i> Recent Grades</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Grade</th>
+                                        <th>Letter</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var grade in Model.Grades.OrderByDescending(g => g.GradeDate).Take(5))
+                                    {
+                                        <tr>
+                                            <td>@grade.Subject</td>
+                                            <td>@grade.GradeValue.ToString("F1")%</td>
+                                            <td><span class="badge bg-primary">@grade.LetterGrade</span></td>
+                                            <td>@grade.GradeDate.ToString("MMM dd, yyyy")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Index" class="btn btn-secondary me-md-2">Back to List</a>
+                        <a asp-action="Grades" asp-route-id="@Model.StudentID" class="btn btn-success me-md-2">
+                            <i class="fas fa-chart-bar"></i> Manage Grades
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@Model.StudentID" class="btn btn-warning me-md-2">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@Model.StudentID" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
