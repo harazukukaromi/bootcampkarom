@@ -1,123 +1,73 @@
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PenjualanBarangApi.Data;
+using PenjualanBarangApi.DTOs;
+using PenjualanBarangApi.Interfaces;
 using PenjualanBarangApi.Models;
 
 namespace PenjualanBarangApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController : ControllerBase
+    [Authorize]
+    public class ProductController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IProductRepository _repository;
+        private readonly IMapper _mapper;
 
-        public ProductsController(AppDbContext context)
+        public ProductController(IProductRepository repository, IMapper mapper)
         {
-            _context = context;
+            _repository = repository;
+            _mapper = mapper;
         }
 
-        // ============================
-        // GET: api/products
-        // ============================
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts(
-            [FromQuery] string? search,
-            [FromQuery] string? sortBy,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 5)
+        public async Task<ActionResult<IEnumerable<ProductReadDTO>>> GetAll()
         {
-            var query = _context.Products.AsQueryable();
-
-            // 🔍 Pencarian
-            if (!string.IsNullOrEmpty(search))
-            {
-                query = query.Where(p => p.Name.Contains(search));
-            }
-
-            // 🔢 Sorting
-            query = sortBy switch
-            {
-                "name" => query.OrderBy(p => p.Name),
-                "price" => query.OrderBy(p => p.Price),
-                _ => query.OrderBy(p => p.Id)
-            };
-
-            // 📄 Pagination
-            var totalItems = await query.CountAsync();
-            var products = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return Ok(new
-            {
-                totalItems,
-                page,
-                pageSize,
-                totalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
-                data = products
-            });
+            var products = await _repository.GetAllAsync();
+            return Ok(_mapper.Map<IEnumerable<ProductReadDTO>>(products));
         }
 
-        // ============================
-        // GET: api/products/{id}
-        // ============================
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        public async Task<ActionResult<ProductReadDTO>> GetById(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-
-            if (product == null)
-                return NotFound(new { message = $"Produk dengan ID {id} tidak ditemukan" });
-
-            return product;
+            var product = await _repository.GetByIdAsync(id);
+            if (product == null) return NotFound();
+            return Ok(_mapper.Map<ProductReadDTO>(product));
         }
 
-        // ============================
-        // POST: api/products
-        // ============================
         [HttpPost]
-        public async Task<ActionResult<Product>> AddProduct(Product product)
+        public async Task<ActionResult<ProductReadDTO>> Create(ProductCreateDTO dto)
         {
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
+            var product = _mapper.Map<Product>(dto);
+            await _repository.AddAsync(product);
+            await _repository.SaveAsync();
 
-            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, _mapper.Map<ProductReadDTO>(product));
         }
 
-        // ============================
-        // PUT: api/products/{id}
-        // ============================
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, Product product)
+        public async Task<IActionResult> Update(int id, ProductUpdateDTO dto)
         {
-            if (id != product.Id)
-                return BadRequest(new { message = "ID di URL tidak sama dengan ID di body" });
+            var product = await _repository.GetByIdAsync(id);
+            if (product == null) return NotFound();
 
-            var existing = await _context.Products.FindAsync(id);
-            if (existing == null)
-                return NotFound(new { message = "Produk tidak ditemukan" });
+            _mapper.Map(dto, product);
+            await _repository.UpdateAsync(product);
+            await _repository.SaveAsync();
 
-            existing.Name = product.Name;
-            existing.Price = product.Price;
-            existing.Stock = product.Stock;
-
-            await _context.SaveChangesAsync();
-            return Ok(existing);
+            return NoContent();
         }
 
-        // ============================
-        // DELETE: api/products/{id}
-        // ============================
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduct(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
-                return NotFound(new { message = "Produk tidak ditemukan" });
+            var product = await _repository.GetByIdAsync(id);
+            if (product == null) return NotFound();
 
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
+            await _repository.DeleteAsync(product);
+            await _repository.SaveAsync();
+
             return NoContent();
         }
     }
