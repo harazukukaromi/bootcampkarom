@@ -4,11 +4,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using PenjualanBarangApi.Repositories;
-using PenjualanBarangApi.Interfaces;
 using Microsoft.OpenApi.Models;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using PenjualanBarangApi.Validators;
 using PenjualanBarangApi.DTOs;
 
 
