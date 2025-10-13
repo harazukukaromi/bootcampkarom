@@ -1,15 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PenjualanBarangApi.Data;
-using PenjualanBarangApi.DTOs;
-using PenjualanBarangApi.Models;
-using PenjualanBarangApi.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using PenjualanBarangApi.Models;
+using PenjualanBarangApi.Interfaces;
+using PenjualanBarangApi.DTOs;
+using FluentValidation;
 using BCrypt.Net;
-
 
 namespace PenjualanBarangApi.Controllers
 {
@@ -17,65 +15,78 @@ namespace PenjualanBarangApi.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IUserRepository _userRepo;
-        private readonly IConfiguration _config;
+        private readonly IUserRepository _userRepository;
+        private readonly IValidator<UserRegisterDTO> _registerValidator;
+        private readonly IConfiguration _configuration;
 
-        public AuthController(IUserRepository userRepo, IConfiguration config)
+        public AuthController(
+            IUserRepository userRepository,
+            IValidator<UserRegisterDTO> registerValidator,
+            IConfiguration configuration)
         {
-            _userRepo = userRepo;
-            _config = config;
+            _userRepository = userRepository;
+            _registerValidator = registerValidator;
+            _configuration = configuration;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserRegisterDTO dto)
         {
-            var existing = await _userRepo.GetByUsernameAsync(dto.Username);
-            if (existing != null)
-                return BadRequest("Username sudah terdaftar.");
+            var validationResult = await _registerValidator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
+
+            var existingUser = await _userRepository.GetByUsernameAsync(dto.Username);
+            if (existingUser != null)
+                return BadRequest("Username sudah digunakan.");
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
             var user = new User
             {
                 Username = dto.Username,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password)
+                PasswordHash = hashedPassword
             };
 
-            await _userRepo.AddUserAsync(user);
-            await _userRepo.SaveAsync();
+            await _userRepository.AddUserAsync(user);
+            await _userRepository.SaveAsync();
 
-            return Ok("Registrasi berhasil!");
+            return Ok(new { Message = "Registrasi berhasil" });
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserLoginDTO dto)
         {
-            var user = await _userRepo.GetByUsernameAsync(dto.Username);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-                return Unauthorized("Username atau password salah.");
+            var user = await _userRepository.GetByUsernameAsync(dto.Username);
+            if (user == null)
+                return Unauthorized("Username tidak ditemukan.");
 
-            var token = GenerateJwtToken(user);
-            return Ok(new { token });
-        }
+            bool passwordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
+            if (!passwordValid)
+                return Unauthorized("Password salah.");
 
-        private string GenerateJwtToken(User user)
-        {
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.Name, user.Username)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),
+                expires: DateTime.Now.AddHours(3),
                 signingCredentials: creds
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return Ok(new
+            {
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Username = user.Username
+            });
         }
     }
 }
+

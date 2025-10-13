@@ -10,6 +10,8 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using PenjualanBarangApi.Validators;
 using PenjualanBarangApi.DTOs;
+using PenjualanBarangApi.Helpers;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,15 +25,20 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddScoped<IValidator<ProductCreateDTO>, ProductCreateValidator>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddScoped<IJwtService, JwtService>();
 
+
+builder.Services.AddScoped<IValidator<UserRegisterDTO>, UserRegisterValidator>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddControllers().AddFluentValidation();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "PenjualanBarangApi", Version = "v1" });
 
-    // Tambahkan konfigurasi JWT Bearer agar muncul tombol "Authorize"
+    // Tambahkan konfigurasi JWT Bearer
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -61,7 +68,6 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
-// ======== Konfigurasi JWT ========
 // === JWT Configuration ===
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
@@ -85,18 +91,15 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// ======== Build aplikasi ========
 var app = builder.Build();
 
-// ======== Middleware ========
-
-// Swagger aktif terus (tidak hanya development)
+// Swagger aktif terus
 app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
-// urutan penting: Authentication → Authorization
+//Authentication → Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 

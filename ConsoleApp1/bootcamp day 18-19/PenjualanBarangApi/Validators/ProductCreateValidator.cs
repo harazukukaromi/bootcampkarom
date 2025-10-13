@@ -4,6 +4,7 @@ using PenjualanBarangApi.Interfaces;
 
 namespace PenjualanBarangApi.Validators
 {
+    //validator untuk ProductCreateDTO supaya tidak boleh ada nama produk duplikat dan harga bersera stok tidak boleh negatif
     public class ProductCreateValidator : AbstractValidator<ProductCreateDTO>
     {
         private readonly IProductRepository _repository;
