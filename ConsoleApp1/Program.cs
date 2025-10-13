@@ -1,120 +1,112 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 
-namespace ReportApp
+namespace RefactoringGuru.DesignPatterns.FactoryMethod.Conceptual
 {
-    // ====== Model ======
-    public class Sale
+    // The Creator class declares the factory method that is supposed to return
+    // an object of a Product class. The Creator's subclasses usually provide
+    // the implementation of this method.
+    abstract class Creator
     {
-        public string Item { get; set; }
-        public decimal Amount { get; set; }
-    }
+        // Note that the Creator may also provide some default implementation of
+        // the factory method.
+        public abstract IProduct FactoryMethod();
 
-    // ====== Service: Formatting ======
-    public class SalesFormatter
-    {
-        public string FormatSalesData(List<Sale> sales, decimal total)
+        // Also note that, despite its name, the Creator's primary
+        // responsibility is not creating products. Usually, it contains some
+        // core business logic that relies on Product objects, returned by the
+        // factory method. Subclasses can indirectly change that business logic
+        // by overriding the factory method and returning a different type of
+        // product from it.
+        public string SomeOperation()
         {
-            var sb = new StringBuilder();
-            sb.AppendLine("Sales Report:");
-            sb.AppendLine("-----------------");
-            foreach (var sale in sales)
-                sb.AppendLine($"{sale.Item}: {sale.Amount:C}");
-            sb.AppendLine("-----------------");
-            sb.AppendLine($"Total: {total:C}");
-            return sb.ToString();
+            // Call the factory method to create a Product object.
+            var product = FactoryMethod();
+            // Now, use the product.
+            var result = "Creator: The same creator's code has just worked with "
+                + product.Operation();
+
+            return result;
         }
     }
 
-    // ====== Service: Email ======
-    public class EmailService
+    // Concrete Creators override the factory method in order to change the
+    // resulting product's type.
+    class ConcreteCreator1 : Creator
     {
-        public void Send(string recipient, string body)
+        // Note that the signature of the method still uses the abstract product
+        // type, even though the concrete product is actually returned from the
+        // method. This way the Creator can stay independent of concrete product
+        // classes.
+        public override IProduct FactoryMethod()
         {
-            Console.WriteLine("=== Sending Email ===");
-            Console.WriteLine($"To: {recipient}");
-            Console.WriteLine(body);
-            Console.WriteLine("=====================\n");
+            return new ConcreteProduct1();
         }
     }
 
-    // ====== Service: File ======
-    public class FileService
+    class ConcreteCreator2 : Creator
     {
-        public void SaveToFile(string fileName, string content)
+        public override IProduct FactoryMethod()
         {
-            File.WriteAllText(fileName, content);
-            Console.WriteLine($"File '{fileName}' has been saved.\n");
+            return new ConcreteProduct2();
         }
     }
 
-    // ====== Service: Logger ======
-    public interface ILogger
+    // The Product interface declares the operations that all concrete products
+    // must implement.
+    public interface IProduct
     {
-        void Log(string message);
+        string Operation();
     }
 
-    public class ConsoleLogger : ILogger
+    // Concrete Products provide various implementations of the Product
+    // interface.
+    class ConcreteProduct1 : IProduct
     {
-        public void Log(string message)
+        public string Operation()
         {
-            Console.WriteLine($"[LOG] {message}");
+            return "{Result of ConcreteProduct1}";
         }
     }
 
-    // ====== Main Service ======
-    public class ReportGenerator
+    class ConcreteProduct2 : IProduct
     {
-        private readonly SalesFormatter _formatter;
-        private readonly EmailService _emailService;
-        private readonly FileService _fileService;
-        private readonly ILogger _logger;
-
-        public ReportGenerator(
-            SalesFormatter formatter,
-            EmailService emailService,
-            FileService fileService,
-            ILogger logger)
+        public string Operation()
         {
-            _formatter = formatter;
-            _emailService = emailService;
-            _fileService = fileService;
-            _logger = logger;
-        }
-
-        public void GenerateReport(List<Sale> sales)
-        {
-            var total = sales.Sum(s => s.Amount);
-            var formattedData = _formatter.FormatSalesData(sales, total);
-
-            _emailService.Send("manager@company.com", formattedData);
-            _fileService.SaveToFile("report.txt", formattedData);
-            _logger.Log($"Report generated successfully at {DateTime.Now}");
+            return "{Result of ConcreteProduct2}";
         }
     }
 
-    // ====== Test Run ======
+    class Client
+    {
+        public void Main()
+        {
+            Console.WriteLine("App: Launched with the ConcreteCreator1.");
+            ClientCode(new ConcreteCreator1());
+            
+            Console.WriteLine("");
+
+            Console.WriteLine("App: Launched with the ConcreteCreator2.");
+            ClientCode(new ConcreteCreator2());
+        }
+
+        // The client code works with an instance of a concrete creator, albeit
+        // through its base interface. As long as the client keeps working with
+        // the creator via the base interface, you can pass it any creator's
+        // subclass.
+        public void ClientCode(Creator creator)
+        {
+            // ...
+            Console.WriteLine("Client: I'm not aware of the creator's class," +
+                "but it still works.\n" + creator.SomeOperation());
+            // ...
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-            var sales = new List<Sale>
-            {
-                new Sale { Item = "Laptop", Amount = 1500.00m },
-                new Sale { Item = "Mouse", Amount = 25.50m },
-                new Sale { Item = "Keyboard", Amount = 45.99m }
-            };
-
-            var formatter = new SalesFormatter();
-            var emailService = new EmailService();
-            var fileService = new FileService();
-            var logger = new ConsoleLogger();
-
-            var reportGenerator = new ReportGenerator(formatter, emailService, fileService, logger);
-            reportGenerator.GenerateReport(sales);
+            new Client().Main();
         }
     }
 }
