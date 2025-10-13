@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PenjualanBarangApi.DTOs;
 using PenjualanBarangApi.Interfaces;
 using PenjualanBarangApi.Models;
+using FluentValidation;
 
 namespace PenjualanBarangApi.Controllers
 {
@@ -35,16 +36,33 @@ namespace PenjualanBarangApi.Controllers
             if (product == null) return NotFound();
             return Ok(_mapper.Map<ProductReadDTO>(product));
         }
-
         [HttpPost]
-        public async Task<ActionResult<ProductReadDTO>> Create(ProductCreateDTO dto)
-        {
-            var product = _mapper.Map<Product>(dto);
-            await _repository.AddAsync(product);
-            await _repository.SaveAsync();
+    public async Task<IActionResult> Create(ProductCreateDTO dto, [FromServices] IValidator<ProductCreateDTO> validator)
+    {
+        var validationResult = await validator.ValidateAsync(dto);
 
-            return CreatedAtAction(nameof(GetById), new { id = product.Id }, _mapper.Map<ProductReadDTO>(product));
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors.Select(e => new
+            {
+                Field = e.PropertyName,
+                Error = e.ErrorMessage
+            }));
         }
+
+        var product = new Product
+        {
+            Name = dto.Name,
+            Price = dto.Price,
+            Stock = dto.Stock
+        };
+
+        await _repository.AddAsync(product);
+        await _repository.SaveAsync();
+        var existing = await _repository.GetAllAsync();
+
+        return Ok(product);
+    }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, ProductUpdateDTO dto)

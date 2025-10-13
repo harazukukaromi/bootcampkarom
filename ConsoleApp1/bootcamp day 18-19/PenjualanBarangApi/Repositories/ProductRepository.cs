@@ -45,5 +45,10 @@ namespace PenjualanBarangApi.Repositories
         {
             await _context.SaveChangesAsync();
         }
+        public async Task<bool> ExistsByNameAsync(string name)
+        {
+            return await _context.Products
+                .AnyAsync(p => p.Name.ToLower() == name.ToLower());
+        }
     }
 }

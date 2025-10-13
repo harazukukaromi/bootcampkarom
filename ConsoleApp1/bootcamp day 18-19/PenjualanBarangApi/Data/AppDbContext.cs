@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PenjualanBarangApi.Models;
-using PenjualanBarangApi.Configurations; 
-
+using PenjualanBarangApi.Configurations;
 
 namespace PenjualanBarangApi.Data
 {
@@ -11,5 +10,13 @@ namespace PenjualanBarangApi.Data
 
         public DbSet<Product> Products { get; set; }
         public DbSet<User> Users { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Apply configuration untuk Product
+            modelBuilder.ApplyConfiguration(new ProductConfiguration());
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

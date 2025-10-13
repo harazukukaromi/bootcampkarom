@@ -6,6 +6,10 @@ using System.Text;
 using PenjualanBarangApi.Repositories;
 using PenjualanBarangApi.Interfaces;
 using Microsoft.OpenApi.Models;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using PenjualanBarangApi.Validators;
+using PenjualanBarangApi.DTOs;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +21,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // ======== Controller + Swagger ========
 builder.Services.AddControllers();
+builder.Services.AddScoped<IValidator<ProductCreateDTO>, ProductCreateValidator>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -52,6 +57,9 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 // ======== Konfigurasi JWT ========
 // === JWT Configuration ===

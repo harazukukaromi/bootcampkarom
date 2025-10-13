@@ -10,5 +10,6 @@ namespace PenjualanBarangApi.Interfaces
         Task UpdateAsync(Product product);
         Task DeleteAsync(Product product);
         Task SaveAsync();
+        Task<bool> ExistsByNameAsync(string name);
     }
 }
