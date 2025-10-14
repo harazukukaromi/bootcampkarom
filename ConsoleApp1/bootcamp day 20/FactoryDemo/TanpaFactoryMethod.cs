@@ -1,11 +1,17 @@
 using System;
-
+//Penggunaan Without Factory Method
 namespace FactoryDemo.TanpaFactory
 {
     public static class TanpaFactoryMethod
     {
         public static void Run()
         {
+            //Bisa dilihat pada method Run ini, kita harus membuat instance dari setiap operasi secara manual
+            //Jika ada operasi baru, kita harus menambahkannya di sini
+            //dan ini melanggar prinsip Open/Closed Principle
+            //dan jika ada banyak operasi, kode ini akan menjadi sangat panjang dan sulit di-maintain
+            //jika ingin melakukan perubahan pada cara pembuatan operasi, kita harus mengubah kode di banyak tempat
+            //dan penggunaan ini harus dilakukan secara sekaligus di awal sehingga membuat kode sangat tidak fleksibel
             Console.WriteLine("\n=== Calculator Tanpa Factory Method ===");
 
             IOperation add = new AddOperation();
@@ -20,6 +26,7 @@ namespace FactoryDemo.TanpaFactory
         }
     }
 
+    // Pengunaan Interface Dengan Menggunakan IOperation
     public interface IOperation
     {
         double Calculate(double a, double b);

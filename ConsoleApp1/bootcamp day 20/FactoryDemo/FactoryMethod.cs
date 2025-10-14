@@ -7,6 +7,10 @@ namespace FactoryDemo.DenganFactory
         public static void Run()
         {
             Console.WriteLine("\n=== Calculator Dengan Factory Method ===");
+            // ini dalah calculator yang menggunakan Factory method
+            // jadi kita tidak perlu membuat instance dari setiap operasi secara manual
+            // kita hanya perlu memilih operasi yang diinginkan, dan factory yang sesuai akan membuatkan instance-nya untuk kita
+            // kita bisa menambahkan operasi baru tanpa mengubah kode yang sudah ada
 
             Console.Write("Masukkan operasi (+, -, *, /): ");
             string op = Console.ReadLine();
@@ -38,6 +42,7 @@ namespace FactoryDemo.DenganFactory
     }
 
     // Concrete Operations
+    // Implementasi dari Operasi pada matematika
     public class AddOperation : IOperation
     {
         public double Calculate(double a, double b) => a + b;
@@ -62,6 +67,9 @@ namespace FactoryDemo.DenganFactory
         }
     }
 
+    // perbedaan utama ada di bagian Factory
+    // jadi kita buat Factory untuk membuat objek Operation
+    // sehingga jika ada perubahan pada Operation, kita hanya perlu mengubah di factory saja tanpa menganggu kode lainnya
     // Abstract Factory
     public abstract class OperationFactory
     {
@@ -69,6 +77,8 @@ namespace FactoryDemo.DenganFactory
     }
 
     // Concrete Factories
+    // jadi dalam case ini tiap factory hanya bertanggung jawab untuk membuat satu jenis operasi saja
+    // sehingga jika ada masalah pada pembuatan operasi tertentu, kita hanya perlu mengubah di factory tersebut tanpa menganggu kode lainnya
     public class AddFactory : OperationFactory
     {
         public override IOperation CreateOperation() => new AddOperation();
